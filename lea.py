@@ -12,3 +12,9 @@ nucleotide_to_note = {
 }
 
 dna_sequence = input("Enter NONmutated DNA sequence: ")
+
+# music stream 
+melody = stream.Stream 
+
+# tempo setting 
+tempo_mark = tempo.MetronomeMark(number=100) 
