@@ -10,3 +10,5 @@ nucleotide_to_note = {
     'C': 'C6',
     'G': 'F#7'
 }
+
+dna_sequence = input("Enter NONmutated DNA sequence: ")
