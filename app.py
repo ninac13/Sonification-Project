@@ -1,26 +1,20 @@
-# instance for the flask app 
-from flask import Flask, render_template, redirect, url_for 
-app = Flask(__name__)
+from flask import Flask, render_template
 
-# This route handles the homepage ('/')
-@app.route('/')
-def index():
-    # Render the 'index.html' template when someone visits the homepage
-    return render_template('index.html')
+def create_app():
+    app = Flask(__name__)
 
-# sonficiation group button click 
-@app.route('/sonfication')
-def sonification (): 
-    # message that they see once they clcik on the button for sonfiication 
-    return "<h1> Welcome to the Sonficiation Group! </h1>"
+    # Import and register your blueprints
+    from views.sonifyView import bp as sonify_bp
+    from views.visualView import bp as visual_bp
 
-# visual group button click 
-@app.route('/visual')
-def visual (): 
-    # message that they see once they clcik on the button for visual 
-    return "<h1> Welcome to the Visual Group! </h1>"
+    app.register_blueprint(sonify_bp)
+    app.register_blueprint(visual_bp)
 
-#runs the app
-if __name__ == '__main__':
-    # Debug mode 
-    app.run(debug=True)
+    @app.route("/")
+    def index():
+        return render_template("index.html")
+
+    return app
+
+if __name__ == "__main__":
+    create_app().run(debug=True)

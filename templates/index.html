@@ -6,41 +6,41 @@
         body { 
             font-family: sans-serif; 
             text-align: center; 
-            padding-top: 100px;       /* Add space above the heading */
+            padding-top: 100px;       /* space above the heading */
             background-color: #f4f4f4;
         }
- /* Style for the heading */
         h1 {
             font-size: 32px;
             margin-bottom: 50px;
         }
-
-        /* Style for both buttons */
         .button {
             display: inline-block;
             padding: 15px 30px;
             margin: 10px;
             font-size: 18px;
-            background-color: #4CAF50; /* Green button */
+            background-color: #4CAF50; /* Green */
             color: white;
             border: none;
             border-radius: 6px;
-            text-decoration: none;     /* Remove underline */
+            text-decoration: none;
             cursor: pointer;
         }
-
-        /* Style when mouse hovers over a button */
         .button:hover {
             background-color: #45a049; /* Darker green on hover */
         }
     </style>
 </head>
 <body>
-    <!-- Top heading on the page -->
     <h1>Which group are you in?</h1>
 
-    <!-- Two buttons linking to different routes in the Flask app -->
-    <a href="{{ url_for('sonification') }}" class="button">Sonification Group</a>
-    <a href="{{ url_for('visual') }}" class="button">Visual Group</a>
+    <!-- Link into the sonification Blueprint -->
+    <a href="{{ url_for('sonify.index') }}" class="button">
+      Sonification Group
+    </a>
+
+    <!-- Link into the visual Blueprint -->
+    <a href="{{ url_for('visual.index') }}" class="button">
+      Visual Group
+    </a>
 </body>
 </html>
