@@ -52,7 +52,7 @@ def index():
 </head>
 <body>
   <div class="container">
-    <h1>Visual Trial 2</h1>
+    <h1>Visual Trial 3</h1>
     <p>This is where your third trial’s interface will go.</p>
   </div>
 </body>

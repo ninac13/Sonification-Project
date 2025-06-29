@@ -51,13 +51,11 @@ def index():
   </style>
 </head>
 <body>
-  <!-- Trial 1 Content -->
   <div class="container">
     <h1>Visual Trial 1</h1>
     <p>This is where your first trial’s interface will go.</p>
   </div>
 
-  <!-- Ready for Trial 2 -->
   <div class="container">
     <h1>Ready to Move to Trial 2?</h1>
     <p>When you’re set, click below to begin Trial 2.</p>

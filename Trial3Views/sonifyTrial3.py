@@ -51,7 +51,6 @@ def index():
   </style>
 </head>
 <body>
-  <!-- Trial 1 Content -->
   <div class="container">
     <h1>Sonified Trial 3</h1>
     <p>This is where your third trial’s interface will go.</p>

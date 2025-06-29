@@ -10,7 +10,7 @@ def index():
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Sonified Trial 1</title>
+  <title>Sonified Trial 2</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -51,13 +51,11 @@ def index():
   </style>
 </head>
 <body>
-  <!-- Trial 1 Content -->
   <div class="container">
     <h1>Sonified Trial 2</h1>
     <p>This is where your second trial’s interface will go.</p>
   </div>
 
-  <!-- Ready for Trial 3 -->
   <div class="container">
     <h1>Ready to Move to Trial 3?</h1>
     <p>When you’re set, click below to begin Trial 3.</p>

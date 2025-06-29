@@ -10,7 +10,7 @@ def index():
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Sonified Trial 1</title>
+  <title>Visual Trial 2</title>
   <style>
     body {
       font-family: Arial, sans-serif;
