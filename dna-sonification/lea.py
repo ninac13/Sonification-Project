@@ -18,3 +18,4 @@ melody = stream.Stream
 
 # tempo setting 
 tempo_mark = tempo.MetronomeMark(number=100) 
+melody.append(tempo_mark)
