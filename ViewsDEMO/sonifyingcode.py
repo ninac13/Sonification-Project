@@ -3,10 +3,10 @@ from scipy.io.wavfile import write
 
 # Map DNA bases to frequencies (Hz)
 note_map = {
-    "A": 65.41,   # C2
-    "T": 392.00,  # G4
-    "C": 1046.50, # C6
-    "G": 2959.96  # F#7
+    "A": 130.81,   # C3
+    "T": 164.81,  # E3
+    "C": 196.00, # G3
+    "G": 246.94,  # B3
 }
 
 # Audio settings
