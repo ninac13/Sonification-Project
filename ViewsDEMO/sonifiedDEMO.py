@@ -61,8 +61,12 @@ def index():
 <body>
   <!-- Sonified Demo Content Card -->
   <div class="container">
-    <h1>Your Sonified Demo Goes Here</h1>
-    <p>(Replace this with your actual audio player and marker UI.)</p>
+    <h1>Click below to Begin your Demo</h1>
+    <p>There are two DNA sequneces that will be playing simultaneously. They will sound identical (You will hear one musical note playing at a time until you hear the mutation.) The mutation will sound like two distinct notes. Once you hear the mutation click the button to mark on the audio file that you have found the mutation. </p>
+    <audio controls>
+  <source src="{{ url_for('static', filename='demo_sonification.wav') }}" type="audio/wav">
+  Your browser does not support the audio element.
+</audio>
   </div>
 
   <!-- Finished with Demo Card -->
