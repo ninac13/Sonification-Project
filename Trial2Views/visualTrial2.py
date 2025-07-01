@@ -53,26 +53,26 @@ def index():
     }
     /* non-mutated: no scrollbar */
     #nonmut-box {
-      width: 1ch;
+      width: 30ch;
       overflow-x: hidden;
       white-space: nowrap;
       border: 1px solid #ddd;
       padding: 5px;
       background: #fafafa;
       font-family: monospace;
-      font-size: 80px;   /* larger letters */
+      font-size: 40px;   /* larger letters */
       margin: 0 auto;
     }
     /* mutated: shows scrollbar */
     #mut-box {
-      width: 1ch;
+      width: 30ch;
       overflow-x: auto;
       white-space: nowrap;
       border: 1px solid #ddd;
       padding: 5px;
       background: #fafafa;
       font-family: monospace;
-      font-size: 80px;   /* larger letters */
+      font-size: 40px;   /* larger letters */
       margin: 0 auto;
     }
     .nav-buttons {
