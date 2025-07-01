@@ -1,24 +1,32 @@
 import numpy as np
 from scipy.io.wavfile import write
 
-# Map DNA bases to frequencies (Hz)
+# Updated mapping: mid-range, dissonant frequencies
 note_map = {
-    "A": 130.81,   # C3
-    "T": 164.81,  # E3
-    "C": 196.00, # G3
-    "G": 246.94,  # B3
+    "A": 311.13,   # D#4
+    "T": 370.00,   # F#4
+    "C": 415.30,   # G#4
+    "G": 554.37    # C#5
 }
 
-# Audio settings
-sample_rate = 44100  # CD-quality
+sample_rate = 44100
 bpm = 100
-duration_per_note = 60 / bpm  # seconds per beat (0.6 sec at 100 BPM)
+duration_per_note = 60 / bpm
+
+def apply_envelope(wave, fade_fraction=0.05):
+    fade_len = int(len(wave) * fade_fraction)
+    fade_in = np.linspace(0, 1, fade_len)
+    fade_out = np.linspace(1, 0, fade_len)
+    envelope = np.ones(len(wave))
+    envelope[:fade_len] *= fade_in
+    envelope[-fade_len:] *= fade_out
+    return wave * envelope
 
 def base_to_tone(base, duration=duration_per_note):
     freq = note_map.get(base, 0)
     t = np.linspace(0, duration, int(sample_rate * duration), False)
     tone = 0.5 * np.sin(2 * np.pi * freq * t)
-    return tone
+    return apply_envelope(tone)
 
 def sequence_to_waveform(sequence):
     tones = [base_to_tone(base) for base in sequence]
@@ -28,21 +36,22 @@ def sequence_to_waveform(sequence):
 normal_seq = "ATGGTGCACCTGACTCCTGAGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGGTGAACGTGGATGAAGTTGGTGGTGAGGCCCTGGGCAG"
 mutated_seq = "ATGGTGCACCTGACTCCTGTGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGGTGAACGTGGATGAAGTTGGTGGTGAGGCCCTGGGCAG"
 
-# Convert to audio waveforms
+# Convert to audio
 normal_wave = sequence_to_waveform(normal_seq)
 mutated_wave = sequence_to_waveform(mutated_seq)
 
-# Pad shorter one (if needed)
+# Pad if needed
 max_len = max(len(normal_wave), len(mutated_wave))
 normal_wave = np.pad(normal_wave, (0, max_len - len(normal_wave)))
 mutated_wave = np.pad(mutated_wave, (0, max_len - len(mutated_wave)))
 
-# Overlay (mix) the two
-combined_wave = (normal_wave + mutated_wave) / 2.0  # Keep volume in range
+# Mix both sequences
+combined_wave = (normal_wave + mutated_wave) / 2.0
 
-# Normalize to 16-bit PCM range
+# Normalize
 audio_data = np.int16(combined_wave / np.max(np.abs(combined_wave)) * 32767)
 
-# Export to WAV
+# Export
 write("demo_sonification.wav", sample_rate, audio_data)
 print("✅ Exported: demo_sonification.wav")
+
