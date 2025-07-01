@@ -72,7 +72,7 @@ def index():
     <h1>All Done!</h1>
     <p>You've completed the final trial.</p>
     <p>Thank you for participating in our study!</p>
-    <p>DO NOT EXIT your screen yet.</p>
+    <p><strong>DO NOT EXIT</strong> your screen yet.</p>
     <p>Please show this finished screen to either Lea or Nina. When you have done so, you are free to exit this program and leave!</p>
   </div>
 </body>
