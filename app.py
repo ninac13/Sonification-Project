@@ -14,6 +14,7 @@ def create_app():
     from Trial2Views.visualTrial2        import bp as visual_trial2_bp
     from Trial3Views.visualTrial3        import bp as visual_trial3_bp
     from Trial3Views.sonifyTrial3        import bp as sonify_trial3_bp
+    from FINISHEDVIEW.finishedview       import bp as finished_view_bp
 
     # register all blueprints
     app.register_blueprint(sonify_bp)
@@ -26,6 +27,7 @@ def create_app():
     app.register_blueprint(sonify_trial1_bp)
     app.register_blueprint(sonify_trial2_bp)
     app.register_blueprint(sonify_trial3_bp)
+    app.register_blueprint(finished_view_bp)
 
 
     @app.route("/")
