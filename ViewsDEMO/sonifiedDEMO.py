@@ -34,13 +34,14 @@ def index():
     }
     h1 {
       margin-bottom: 16px;
-      font-size: 24px;
+      font-size: 32px;
       color: #111;
     }
     p {
       color: #666; /* Slightly gray */
-      margin-bottom: 16px;
-    }
+       font-size: 18px;    /* slightly smaller size */
+       margin-bottom: 16px;
+      }
     .button {
       display: inline-block;
       margin-top: 20px;
@@ -133,7 +134,7 @@ def index():
 
   <div class="container">
     <h1>Click below to Begin your Demo</h1>
-    <p>There are two DNA sequences playing simultaneously. When you hear a mutation (distinct notes), click the marker button.</p>
+    <p>There are two DNA sequences that will be playing simultaneously. They will sound identical (You will hear one musical note playing at a time until you hear the mutation.) The mutation will sound like two distinct notes. Once you hear the mutation click the button to mark on the audio file that you have found the mutation.</p>
 
     <div class="audio-controls">
       <button id="playButton">Play</button>
