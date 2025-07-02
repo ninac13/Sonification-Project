@@ -1,4 +1,3 @@
-# ViewsDEMO/visualDEMO.py
 from flask import Blueprint, render_template_string, request, url_for
 from Bio import SeqIO
 import os
@@ -55,10 +54,12 @@ def index():
         <span class="mut-letter" data-index="{{ loop.index0 }}">{{ base }}</span>
       {% endfor %}
     </div>
+    <!-- horizontal scroll slider -->
+    <input id="scroll-slider" type="range" min="0" value="0" style="width: 30ch; margin-top: 10px;" />
     <span class="label" style="margin-top: 10px;">Trial 2 Mutated Sequence ABOVE</span>
   </div>
   <div id="marker-pool" class="container">
-    <span class="label">Drag these markers onto the mutated sequence:</span></br>
+    <span class="label">Drag these markers onto the mutated sequence:</span><br />
     <div id="markers">
       {% for i in range(10) %}
         <div class="marker" draggable="true"></div>
@@ -75,75 +76,73 @@ def index():
   <script>
     const nonmut = document.getElementById('nonmut-box');
     const mut    = document.getElementById('mut-box');
-    mut.addEventListener('scroll', () => nonmut.scrollLeft = mut.scrollLeft);
+    const slider = document.getElementById('scroll-slider');
+
+    // sync scroll and slider
+    function updateSlider() {
+      const maxScroll = mut.scrollWidth - mut.clientWidth;
+      slider.max = maxScroll;
+      slider.value = mut.scrollLeft;
+    }
+    mut.addEventListener('scroll', () => {
+      nonmut.scrollLeft = mut.scrollLeft;
+      slider.value = mut.scrollLeft;
+    });
+    slider.addEventListener('input', e => {
+      mut.scrollLeft = e.target.value;
+      nonmut.scrollLeft = e.target.value;
+    });
+    window.addEventListener('load', updateSlider);
+    window.addEventListener('resize', updateSlider);
 
     const markersDiv = document.getElementById('markers');
     const letters = Array.from(document.querySelectorAll('.mut-letter'));
     let remaining = 10;
     const remainingEl = document.getElementById('remaining');
-    let dragged = null;
-    let offsetX = 0, offsetY = 0;
-    let wasSnapped = false;
 
     function updateCount() { remainingEl.textContent = remaining; }
-
     document.querySelectorAll('.marker').forEach(marker => {
+      let wasSnapped = false;
       marker.addEventListener('dragstart', e => {
-        dragged = marker;
         wasSnapped = !!marker.dataset.snappedTo;
         marker.classList.add('dragging');
         const rect = marker.getBoundingClientRect();
-        offsetX = e.clientX - rect.left;
-        offsetY = e.clientY - rect.top;
+        e.dataTransfer.setDragImage(marker, e.clientX - rect.left, e.clientY - rect.top);
       });
-
       marker.addEventListener('dragend', e => {
         marker.classList.remove('dragging');
         const mRect = markersDiv.getBoundingClientRect();
-        // Check pool drop first
-        if (e.clientX >= mRect.left && e.clientX <= mRect.right
-            && e.clientY >= mRect.top && e.clientY <= mRect.bottom) {
-          // return to pool
+        if (e.clientX >= mRect.left && e.clientX <= mRect.right && e.clientY >= mRect.top && e.clientY <= mRect.bottom) {
           delete marker.dataset.snappedTo;
           markersDiv.appendChild(marker);
-          // reset positioning
-          marker.style.position = '';
-          marker.style.left = '';
-          marker.style.top = '';
-          marker.style.transform = '';
+          marker.style.position = marker.style.left = marker.style.top = marker.style.transform = '';
           if (wasSnapped) { remaining++; updateCount(); }
         } else {
-          // drop on letter
           let closest = null, bestDist = Infinity;
           letters.forEach(letter => {
             const r = letter.getBoundingClientRect();
-            const cx = r.left + r.width/2;
-            const cy = r.top + r.height/2;
-            const d = Math.hypot(e.clientX - cx, e.clientY - cy);
+            const d = Math.hypot(e.clientX - (r.left + r.width/2), e.clientY - (r.top + r.height/2));
             if (d < bestDist) { bestDist = d; closest = letter; }
           });
           if (closest) {
             closest.appendChild(marker);
-            marker.style.position  = 'absolute';
-            marker.style.left      = '50%';
-            marker.style.top       = '50%';
+            marker.style.position = 'absolute';
+            marker.style.left = '50%';
+            marker.style.top = '50%';
             marker.style.transform = 'translate(-50%, -50%)';
             if (!wasSnapped) { remaining--; updateCount(); }
             marker.dataset.snappedTo = closest.dataset.index;
           }
         }
-        dragged = null;
       });
     });
-
-    // allow drop
     document.body.addEventListener('dragover', e => e.preventDefault());
   </script>
 </body>
 </html>
         """, nonmut=nonmut, mut=mut)
 
-    # GET: show the start button only
+    # GET: show the start button only (unchanged)
     return render_template_string("""
 <!doctype html>
 <html lang="en">
@@ -166,6 +165,7 @@ def index():
       background: #fff;
       padding: 40px;
       border-radius: 8px;
+
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       width: 90%;
       max-width: 600px;
