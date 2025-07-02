@@ -54,7 +54,7 @@ def index():
   <!-- Trial 1 Content -->
   <div class="container">
     <h1>Sonified Trial 1</h1>
-    <p>This is where your first trial’s interface will go.</p>
+    <p>When you hear a mutation (two notes playing at the same time) click the red button in order to mark where you have heard the mutation. Afterwards, click submit to see if you are correct! There is only one mutation so you will only need to utilize one marker.</p>
   </div>
 
   <!-- Ready for Trial 2 -->
