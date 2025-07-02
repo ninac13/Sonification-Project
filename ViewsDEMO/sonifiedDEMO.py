@@ -32,14 +32,13 @@ def index():
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       margin-bottom: 20px;
     }
-
     h1 {
-      margin-bottom: 24px;
+      margin-bottom: 16px;
       font-size: 24px;
-      color: #333;
+      color: #111;
     }
     p {
-      color: #555;
+      color: #666; /* Slightly gray */
       margin-bottom: 16px;
     }
     .button {
@@ -58,46 +57,46 @@ def index():
       background: #0056b3;
     }
 
-    .audio-wrapper {
-      position: relative;
-      width: 100%;
+    .audio-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       margin-top: 20px;
+      justify-content: center;
     }
 
-    #customAudioControls {
-      width: 100%;
+    .audio-controls button {
+      font-size: 18px;
+      padding: 10px 20px;
+      border: none;
+      background: #ccc;
+      cursor: pointer;
+      border-radius: 5px;
     }
 
-    #progressContainer {
+    #progressBarContainer {
       position: relative;
       width: 100%;
       height: 20px;
-      background: #ddd;
+      background: #ccc;
+      border-radius: 5px;
       margin-top: 10px;
-      border-radius: 4px;
       overflow: hidden;
     }
 
     #progressBar {
+      position: absolute;
       height: 100%;
-      width: 0;
       background: #007BFF;
+      width: 0%;
     }
 
-    #markerOverlay {
+    .marker-bar {
       position: absolute;
-      top: -30px;
-      left: 0;
-      height: 20px;
-      width: 100%;
-      pointer-events: none;
-    }
-
-    .marker {
-      position: absolute;
-      color: red;
-      font-size: 24px;
-      transform: translateX(-50%);
+      top: 0;
+      height: 100%;
+      width: 2px;
+      background: red;
     }
 
     #markerButton {
@@ -105,10 +104,10 @@ def index():
       color: white;
       border: none;
       border-radius: 50%;
-      width: 50px;
-      height: 50px;
+      width: 60px;
+      height: 60px;
       font-weight: bold;
-      font-size: 14px;
+      font-size: 20px;
       cursor: pointer;
       margin-top: 20px;
     }
@@ -134,26 +133,20 @@ def index():
 
   <div class="container">
     <h1>Click below to Begin your Demo</h1>
-    <p>There are two DNA sequences that will be playing simultaneously. They will sound identical (You will hear one musical note playing at a time until you hear the mutation.) The mutation will sound like two distinct notes. Once you hear the mutation click the button to mark on the audio file that you have found the mutation.</p>
+    <p>There are two DNA sequences playing simultaneously. When you hear a mutation (distinct notes), click the marker button.</p>
 
-    <div class="audio-wrapper">
-      <audio id="dnaAudio">
-        <source src="{{ url_for('static', filename='demo_sonification.wav') }}" type="audio/wav">
-        Your browser does not support the audio element.
-      </audio>
+    <div class="audio-controls">
+      <button id="playButton">Play</button>
+      <span id="timeDisplay">0:00 / 0:00</span>
+    </div>
 
-      <!-- Custom controls -->
-      <div id="customAudioControls">
-        <button onclick="togglePlay()">▶️/⏸️</button>
-        <div id="progressContainer" onclick="seek(event)">
-          <div id="progressBar"></div>
-          <div id="markerOverlay"></div>
-        </div>
-      </div>
+    <div id="progressBarContainer">
+      <div id="progressBar"></div>
+      <div id="markerContainer"></div>
     </div>
 
     <!-- Marker Controls -->
-    <button id="markerButton" title="Click to drop marker">10</button>
+    <button id="markerButton">10</button>
     <span id="markerLabel">/10 markers left</span>
 
     <!-- Speed Controls -->
@@ -162,9 +155,13 @@ def index():
       <input type="range" id="playbackRate" min="0.5" max="2" step="0.1" value="1">
       <span id="rateDisplay">1x</span>
     </div>
+
+    <audio id="dnaAudio" hidden>
+      <source src="{{ url_for('static', filename='demo_sonification.wav') }}" type="audio/wav">
+      Your browser does not support the audio element.
+    </audio>
   </div>
 
-  <!-- Finished with Demo Card -->
   <div class="container">
     <h1>Finished with Demo?</h1>
     <p>When you’re ready, continue to the first trial:</p>
@@ -175,51 +172,60 @@ def index():
 
 <script>
   const audio = document.getElementById("dnaAudio");
-  const progressContainer = document.getElementById("progressContainer");
+  const playButton = document.getElementById("playButton");
+  const timeDisplay = document.getElementById("timeDisplay");
   const progressBar = document.getElementById("progressBar");
-  const markerOverlay = document.getElementById("markerOverlay");
   const markerButton = document.getElementById("markerButton");
   const markerLabel = document.getElementById("markerLabel");
+  const markerContainer = document.getElementById("markerContainer");
 
   const maxMarkers = 10;
   let remainingMarkers = maxMarkers;
 
-  function togglePlay() {
+  // Play/Pause functionality
+  playButton.addEventListener("click", () => {
     if (audio.paused) {
       audio.play();
+      playButton.textContent = "Pause";
     } else {
       audio.pause();
+      playButton.textContent = "Play";
     }
-  }
-
-  function seek(e) {
-    const rect = progressContainer.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const percentage = x / rect.width;
-    audio.currentTime = percentage * audio.duration;
-  }
-
-  audio.addEventListener("timeupdate", () => {
-    const percentage = audio.currentTime / audio.duration;
-    progressBar.style.width = percentage * 100 + "%";
   });
 
+  // Update time and progress bar
+  audio.addEventListener("timeupdate", () => {
+    const current = audio.currentTime;
+    const duration = audio.duration;
+    if (!isNaN(duration)) {
+      timeDisplay.textContent = `${formatTime(current)} / ${formatTime(duration)}`;
+      const percent = (current / duration) * 100;
+      progressBar.style.width = `${percent}%`;
+    }
+  });
+
+  function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  // Marker logic
   markerButton.addEventListener("click", () => {
     if (remainingMarkers <= 0 || audio.paused || audio.currentTime === 0) return;
 
-    const percentage = audio.currentTime / audio.duration;
-    const markerX = percentage * progressContainer.offsetWidth;
+    const duration = audio.duration;
+    const currentTime = audio.currentTime;
+    const percent = (currentTime / duration) * 100;
 
     const marker = document.createElement("div");
-    marker.classList.add("marker");
-    marker.textContent = "↓";
-    marker.style.left = markerX + "px";
-
-    markerOverlay.appendChild(marker);
+    marker.className = "marker-bar";
+    marker.style.left = `${percent}%`;
+    markerContainer.appendChild(marker);
 
     remainingMarkers--;
     markerButton.textContent = remainingMarkers;
-    markerLabel.textContent = "/10 markers left";
+    markerLabel.textContent = `/10 markers left`;
   });
 
   // Speed control
@@ -236,4 +242,8 @@ def index():
 </body>
 </html>
 """)
+
+
+
+
 
