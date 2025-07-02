@@ -28,7 +28,7 @@ def index():
     body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; margin: 0; display: flex; flex-direction: column; align-items: center; }
     .container { background: #fff; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 90%; max-width: 800px; text-align: center; }
     .label { font-weight: bold; color: #333; display: block; margin-top: 10px; }
-    #nonmut-box { letter-spacing: 1.183ch; width: 30ch; overflow-x: hidden; white-space: nowrap; border: 1px solid #ddd; padding: 5px; background: #fafafa; font-family: monospace; font-size: 40px; margin: 0 auto; }
+    #nonmut-box { letter-spacing: 1.182ch; width: 30ch; overflow-x: hidden; white-space: nowrap; border: 1px solid #ddd; padding: 5px; background: #fafafa; font-family: monospace; font-size: 40px; margin: 0 auto; }
     #mut-box { width: 30ch; overflow-x: auto; white-space: nowrap; border: 1px solid #ddd; padding: 5px; background: #fafafa; font-family: monospace; font-size: 40px; margin: 0 auto; }
     .nav-buttons { margin-top: 20px; }
     .nav-buttons button { margin: 0 10px; padding: 10px 20px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; background: #007BFF; color: #fff; transition: background .2s; }
@@ -60,7 +60,7 @@ def index():
       type="range"
       min="0"
       value="0"
-      style="width: 30ch; margin-top: 10px;"
+      style="width: 80ch; margin-top: 10px;"
     />
     <span class="label" style="margin-top: 10px;">Sickle Cell Mutated Sequence ABOVE</span>
   </div>
