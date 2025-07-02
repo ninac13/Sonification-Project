@@ -94,12 +94,14 @@ def index():
     }
 
     .marker-bar {
-      position: absolute;
-      top: 0;
-      height: 100%;
-      width: 2px;
-      background: red;
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 2px;
+    background: red;
+    cursor: pointer; /* ← makes marker feel clickable */
     }
+
 
     #markerButton {
       background-color: red;
@@ -135,7 +137,7 @@ def index():
 
   <div class="container">
     <h1>Click 'Play' below to begin your Demo</h1>
-    <p> When you hear a mutation (two notes playing at the same time) click the red button in order to mark where you have heard the mutation. Afterwards, click submit to see if you are correct!</p>
+    <p> When you hear a mutation (two notes playing at the same time) click the red button in order to mark where you have heard the mutation. Afterwards, click submit to see if you are correct! There is only one mutation so you will only need to utilize one marker.</p>
 
     <div class="audio-controls">
       <button id="playButton">Play</button>
@@ -157,6 +159,10 @@ def index():
       <input type="range" id="playbackRate" min="0.5" max="2" step="0.1" value="1">
       <span id="rateDisplay">1x</span>
     </div>
+    <!-- Submit Button -->
+    <button class="button" id="submitButton">Submit</button>
+    <p id="resultMessage"></p>
+
 
     <audio id="dnaAudio" hidden>
       <source src="{{ url_for('static', filename='demo_sonification.wav') }}" type="audio/wav">
@@ -213,23 +219,34 @@ def index():
     return `${m}:${s}`;
   }
 
-  // Marker logic
-  markerButton.addEventListener("click", () => {
-    if (remainingMarkers <= 0 || audio.paused || audio.currentTime === 0) return;
+  // Marker logic with removable markers
+markerButton.addEventListener("click", () => {
+  if (remainingMarkers <= 0 || audio.paused || audio.currentTime === 0) return;
 
-    const duration = audio.duration;
-    const currentTime = audio.currentTime;
-    const percent = (currentTime / duration) * 100;
+  const duration = audio.duration;
+  const currentTime = audio.currentTime;
+  const percent = (currentTime / duration) * 100;
 
-    const marker = document.createElement("div");
-    marker.className = "marker-bar";
-    marker.style.left = `${percent}%`;
-    markerContainer.appendChild(marker);
+  const marker = document.createElement("div");
+  marker.className = "marker-bar";
+  marker.style.left = `${percent}%`;
 
-    remainingMarkers--;
-    markerButton.textContent = remainingMarkers;
-    markerLabel.textContent = `/10 markers left`;
+  // ➕ Add click-to-remove behavior
+  marker.addEventListener("click", (event) => {
+  event.stopPropagation();  // ⛔ prevent progress bar from seeking
+  marker.remove();
+  remainingMarkers++;
+  markerButton.textContent = remainingMarkers;
+  markerLabel.textContent = `/10 markers left`;
   });
+
+
+  markerContainer.appendChild(marker);
+  remainingMarkers--;
+  markerButton.textContent = remainingMarkers;
+  markerLabel.textContent = `/10 markers left`;
+});
+
 
   // Speed control
   const slider = document.getElementById("playbackRate");
@@ -256,6 +273,35 @@ document.addEventListener("keydown", function (event) {
     playButton.click();     // Simulate click on play button
   }
   });
+  // Submit button logic
+const submitButton = document.getElementById("submitButton");
+const resultMessage = document.getElementById("resultMessage");
+
+submitButton.addEventListener("click", () => {
+  const markers = markerContainer.querySelectorAll(".marker-bar");
+  const correctTime = 11; // seconds
+  const errorMargin = 2;
+
+  let correct = false;
+
+  markers.forEach(marker => {
+    const percent = parseFloat(marker.style.left); // e.g., "28.3%"
+    const markerTime = (percent / 100) * audio.duration;
+
+    if (Math.abs(markerTime - correctTime) <= errorMargin) {
+      correct = true;
+    }
+  });
+
+  if (correct) {
+    resultMessage.textContent = "✅ Correct! You found the mutation. 0:11 seconds is exactly where the mutation is. If you answered between the range 0:09 - 0:13 seconds you are correct";
+    resultMessage.style.color = "green";
+  } else {
+    resultMessage.textContent = "❌ Not quite. Try listening again.";
+    resultMessage.style.color = "red";
+  }
+});
+
 
 </script>
 
