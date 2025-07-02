@@ -69,6 +69,10 @@ def index():
     width: fit-content;
     margin-top: 20px;
   }
+  .audio-wrapper audio {
+  width: 100%;
+  }
+
 
   #markerOverlay {
     position: absolute;
@@ -79,12 +83,14 @@ def index():
     pointer-events: none;
   }
 
-  .marker {
-    position: absolute;
-    color: red;
-    font-size: 18px;
-    transform: translateX(-50%);
-  }
+ .marker {
+  position: absolute;
+  top: 100%; /* below the audio bar */
+  color: red;
+  font-size: 18px;
+  transform: translateX(-50%);
+}
+
 
   #markerButton {
     background-color: red;
@@ -102,7 +108,7 @@ def index():
 
 <!-- Audio and overlay container -->
 <div class="audio-wrapper">
-  <audio id="dnaAudio" controls>
+  <audio id="dnaAudio" controls style="width: 100%;">
     <source src="{{ url_for('static', filename='demo_sonification.wav') }}" type="audio/wav">
     Your browser does not support the audio element.
   </audio>
@@ -125,29 +131,31 @@ def index():
   let remainingMarkers = maxMarkers;
 
   markerButton.addEventListener("click", () => {
-    if (remainingMarkers <= 0 || !audio.duration) return;
+    if (remainingMarkers <= 0 || audio.currentTime === 0 || audio.paused) return;
 
     const currentTime = audio.currentTime;
     const duration = audio.duration;
+
+    const audioRect = audio.getBoundingClientRect();
+    const overlayRect = markerOverlay.getBoundingClientRect();
+
     const percentage = currentTime / duration;
+    const overlayWidth = overlayRect.width;
+    const leftPosition = percentage * overlayWidth;
 
-    const overlayWidth = markerOverlay.offsetWidth;
-
-    // Create the arrow marker
     const marker = document.createElement("div");
     marker.classList.add("marker");
-    marker.textContent = "↑";
-    marker.style.left = `${percentage * 100}%`;
+    marker.textContent = "↓"; // Down arrow
+    marker.style.left = `${leftPosition}px`;
 
-    // Add to overlay
     markerOverlay.appendChild(marker);
 
-    // Decrement marker count
     remainingMarkers--;
     markerButton.textContent = remainingMarkers;
     markerLabel.textContent = `/10 markers left`;
   });
 </script>
+
 
 
 <!-- Speed Control Slider -->
@@ -168,7 +176,7 @@ def index():
 </script>
                         
 
-                                  
+                         
   </div>
 
   <!-- Finished with Demo Card -->
