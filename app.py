@@ -1,9 +1,11 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, session
+from ParticipantInfoView.participantInfoView import bp as participant_info_bp
 
 def create_app():
     app = Flask(__name__)
+    app.secret_key = 'your_secret_key_here'  # Required for session handling
 
-    # existing blueprint imports…
+    # Existing blueprint imports…
     from SelectModeViews.sonifyView      import bp as sonify_bp
     from SelectModeViews.visualView      import bp as visual_bp
     from ViewsDEMO.visualDEMO            import bp as visual_demo_bp
@@ -16,7 +18,8 @@ def create_app():
     from Trial3Views.sonifyTrial3        import bp as sonify_trial3_bp
     from FINISHEDVIEW.finishedview       import bp as finished_view_bp
 
-    # register all blueprints
+    # Register all blueprints
+    app.register_blueprint(participant_info_bp)  # Make this handle "/"
     app.register_blueprint(sonify_bp)
     app.register_blueprint(visual_bp)
     app.register_blueprint(visual_demo_bp)
@@ -28,11 +31,6 @@ def create_app():
     app.register_blueprint(sonify_trial2_bp)
     app.register_blueprint(sonify_trial3_bp)
     app.register_blueprint(finished_view_bp)
-
-
-    @app.route("/")
-    def index():
-        return render_template("index.html")
 
     return app
 

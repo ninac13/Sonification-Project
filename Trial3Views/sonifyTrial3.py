@@ -136,7 +136,7 @@ def index():
 
   <div class="container">
     <h1>Sonified Trial 3</h1>
-    <p>When you hear a mutation (two notes playing at the same time) click the red button in order to mark where you have heard the mutation. There is only one mutation so you will only need to utilize one marker.</p>
+    <p>When you hear a mutation (two notes playing at the same time) click the red button in order to mark where you have heard the mutation. However, you will NOT be told how many mutations there are and whether you got them correct. There are ten markers provided and you may use all or none of them. Only place the markers appropiately when you hear a mutation.</p>
 
     <div class="audio-controls">
       <button id="playButton">Play</button>
@@ -164,9 +164,9 @@ def index():
   </div>
 
   <div class="container">
-    <h1>Ready to Move to Trial 4?</h1>
-    <p>When you’re set, click below to begin Trial 4.</p>
-    <a href="/sonification/trial4/" class="button">Go to Sonification Trial 4 →</a>
+    <h1>All Done?</h1>
+    <p>When you’re finished, click below to proceed.</p>
+    <a href="/finished" class="button">Finish with Trial 3 →</a>
   </div>
 
 <script>
@@ -261,3 +261,4 @@ def index():
 </body>
 </html>
 """)
+
