@@ -32,6 +32,7 @@ def index():
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       margin-bottom: 20px;
     }
+
     h1 {
       margin-bottom: 24px;
       font-size: 24px;
@@ -56,127 +57,111 @@ def index():
     .button:hover {
       background: #0056b3;
     }
+
+    .audio-wrapper {
+      position: relative;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    #customAudioControls {
+      width: 100%;
+    }
+
+    #progressContainer {
+      position: relative;
+      width: 100%;
+      height: 20px;
+      background: #ddd;
+      margin-top: 10px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    #progressBar {
+      height: 100%;
+      width: 0;
+      background: #007BFF;
+    }
+
+    #markerOverlay {
+      position: absolute;
+      top: -30px;
+      left: 0;
+      height: 20px;
+      width: 100%;
+      pointer-events: none;
+    }
+
+    .marker {
+      position: absolute;
+      color: red;
+      font-size: 24px;
+      transform: translateX(-50%);
+    }
+
+    #markerButton {
+      background-color: red;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    .speed-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .speed-controls label {
+      margin-right: 10px;
+    }
+
+    .speed-controls input[type=range] {
+      width: 150px;
+      margin: 0 10px;
+    }
   </style>
 </head>
 <body>
-  <!-- Sonified Demo Content Card -->
+
   <div class="container">
     <h1>Click below to Begin your Demo</h1>
-    <p>There are two DNA sequneces that will be playing simultaneously. They will sound identical (You will hear one musical note playing at a time until you hear the mutation.) The mutation will sound like two distinct notes. Once you hear the mutation click the button to mark on the audio file that you have found the mutation. </p>
-<style>
-  .audio-wrapper {
-    position: relative;
-    width: fit-content;
-    margin-top: 20px;
-  }
-  .audio-wrapper audio {
-  width: 100%;
-  }
+    <p>There are two DNA sequences that will be playing simultaneously. They will sound identical (You will hear one musical note playing at a time until you hear the mutation.) The mutation will sound like two distinct notes. Once you hear the mutation click the button to mark on the audio file that you have found the mutation.</p>
 
+    <div class="audio-wrapper">
+      <audio id="dnaAudio">
+        <source src="{{ url_for('static', filename='demo_sonification.wav') }}" type="audio/wav">
+        Your browser does not support the audio element.
+      </audio>
 
-  #markerOverlay {
-    position: absolute;
-    top: -20px; /* place above audio bar */
-    left: 0;
-    width: 100%;
-    height: 20px;
-    pointer-events: none;
-  }
+      <!-- Custom controls -->
+      <div id="customAudioControls">
+        <button onclick="togglePlay()">▶️/⏸️</button>
+        <div id="progressContainer" onclick="seek(event)">
+          <div id="progressBar"></div>
+          <div id="markerOverlay"></div>
+        </div>
+      </div>
+    </div>
 
- .marker {
-  position: absolute;
-  top: 100%; /* below the audio bar */
-  color: red;
-  font-size: 18px;
-  transform: translateX(-50%);
-}
+    <!-- Marker Controls -->
+    <button id="markerButton" title="Click to drop marker">10</button>
+    <span id="markerLabel">/10 markers left</span>
 
-
-  #markerButton {
-    background-color: red;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    font-weight: bold;
-    font-size: 14px;
-    cursor: pointer;
-    margin-top: 20px;
-  }
-</style>
-
-<!-- Audio and overlay container -->
-<div class="audio-wrapper">
-  <audio id="dnaAudio" controls style="width: 100%;">
-    <source src="{{ url_for('static', filename='demo_sonification.wav') }}" type="audio/wav">
-    Your browser does not support the audio element.
-  </audio>
-
-  <!-- Overlay for markers -->
-  <div id="markerOverlay"></div>
-</div>
-
-<!-- Marker Button -->
-<button id="markerButton" title="Click to drop marker">10</button>
-<span id="markerLabel">/10 markers left</span>
-
-<script>
-  const audio = document.getElementById("dnaAudio");
-  const markerButton = document.getElementById("markerButton");
-  const markerLabel = document.getElementById("markerLabel");
-  const markerOverlay = document.getElementById("markerOverlay");
-
-  const maxMarkers = 10;
-  let remainingMarkers = maxMarkers;
-
-  markerButton.addEventListener("click", () => {
-    if (remainingMarkers <= 0 || audio.currentTime === 0 || audio.paused) return;
-
-    const currentTime = audio.currentTime;
-    const duration = audio.duration;
-
-    const audioRect = audio.getBoundingClientRect();
-    const overlayRect = markerOverlay.getBoundingClientRect();
-
-    const percentage = currentTime / duration;
-    const overlayWidth = overlayRect.width;
-    const leftPosition = percentage * overlayWidth;
-
-    const marker = document.createElement("div");
-    marker.classList.add("marker");
-    marker.textContent = "↓"; // Down arrow
-    marker.style.left = `${leftPosition}px`;
-
-    markerOverlay.appendChild(marker);
-
-    remainingMarkers--;
-    markerButton.textContent = remainingMarkers;
-    markerLabel.textContent = `/10 markers left`;
-  });
-</script>
-
-
-
-<!-- Speed Control Slider -->
-<label for="playbackRate">Speed:</label>
-<input type="range" id="playbackRate" min="0.5" max="2" step="0.1" value="1">
-<span id="rateDisplay">1x</span>
-
-<script>
-  const audio = document.getElementById("dnaAudio");
-  const slider = document.getElementById("playbackRate");
-  const rateDisplay = document.getElementById("rateDisplay");
-
-  slider.addEventListener("input", function () {
-    const rate = parseFloat(this.value);
-    audio.playbackRate = rate;
-    rateDisplay.textContent = `${rate.toFixed(1)}x`;
-  });
-</script>
-                        
-
-                         
+    <!-- Speed Controls -->
+    <div class="speed-controls">
+      <label for="playbackRate">Speed:</label>
+      <input type="range" id="playbackRate" min="0.5" max="2" step="0.1" value="1">
+      <span id="rateDisplay">1x</span>
+    </div>
   </div>
 
   <!-- Finished with Demo Card -->
@@ -187,6 +172,68 @@ def index():
       Go to Sonification Trial 1
     </a>
   </div>
+
+<script>
+  const audio = document.getElementById("dnaAudio");
+  const progressContainer = document.getElementById("progressContainer");
+  const progressBar = document.getElementById("progressBar");
+  const markerOverlay = document.getElementById("markerOverlay");
+  const markerButton = document.getElementById("markerButton");
+  const markerLabel = document.getElementById("markerLabel");
+
+  const maxMarkers = 10;
+  let remainingMarkers = maxMarkers;
+
+  function togglePlay() {
+    if (audio.paused) {
+      audio.play();
+    } else {
+      audio.pause();
+    }
+  }
+
+  function seek(e) {
+    const rect = progressContainer.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = x / rect.width;
+    audio.currentTime = percentage * audio.duration;
+  }
+
+  audio.addEventListener("timeupdate", () => {
+    const percentage = audio.currentTime / audio.duration;
+    progressBar.style.width = percentage * 100 + "%";
+  });
+
+  markerButton.addEventListener("click", () => {
+    if (remainingMarkers <= 0 || audio.paused || audio.currentTime === 0) return;
+
+    const percentage = audio.currentTime / audio.duration;
+    const markerX = percentage * progressContainer.offsetWidth;
+
+    const marker = document.createElement("div");
+    marker.classList.add("marker");
+    marker.textContent = "↓";
+    marker.style.left = markerX + "px";
+
+    markerOverlay.appendChild(marker);
+
+    remainingMarkers--;
+    markerButton.textContent = remainingMarkers;
+    markerLabel.textContent = "/10 markers left";
+  });
+
+  // Speed control
+  const slider = document.getElementById("playbackRate");
+  const rateDisplay = document.getElementById("rateDisplay");
+
+  slider.addEventListener("input", function () {
+    const rate = parseFloat(this.value);
+    audio.playbackRate = rate;
+    rateDisplay.textContent = `${rate.toFixed(1)}x`;
+  });
+</script>
+
 </body>
 </html>
-    """)
+""")
+
