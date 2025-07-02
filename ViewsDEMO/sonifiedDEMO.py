@@ -34,14 +34,14 @@ def index():
     }
     h1 {
       margin-bottom: 16px;
-      font-size: 32px;
+      font-size: 34px;
       color: #111;
     }
     p {
-      color: #666; /* Slightly gray */
-       font-size: 18px;    /* slightly smaller size */
-       margin-bottom: 16px;
-      }
+      color: #666;
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
     .button {
       display: inline-block;
       margin-top: 20px;
@@ -83,6 +83,7 @@ def index():
       border-radius: 5px;
       margin-top: 10px;
       overflow: hidden;
+      cursor: pointer;
     }
 
     #progressBar {
@@ -133,8 +134,8 @@ def index():
 <body>
 
   <div class="container">
-    <h1>Click below to Begin your Demo</h1>
-    <p>There are two DNA sequences that will be playing simultaneously. They will sound identical (You will hear one musical note playing at a time until you hear the mutation.) The mutation will sound like two distinct notes. Once you hear the mutation click the button to mark on the audio file that you have found the mutation.</p>
+    <h1>Click 'Play' below to begin your Demo</h1>
+    <p> When you hear a mutation (two notes playing at the same time) click the red button in order to mark where you have heard the mutation. Afterwards, click submit to see if you are correct!</p>
 
     <div class="audio-controls">
       <button id="playButton">Play</button>
@@ -179,6 +180,7 @@ def index():
   const markerButton = document.getElementById("markerButton");
   const markerLabel = document.getElementById("markerLabel");
   const markerContainer = document.getElementById("markerContainer");
+  const progressBarContainer = document.getElementById("progressBarContainer");
 
   const maxMarkers = 10;
   let remainingMarkers = maxMarkers;
@@ -238,11 +240,29 @@ def index():
     audio.playbackRate = rate;
     rateDisplay.textContent = `${rate.toFixed(1)}x`;
   });
+
+  // SEEKING via progress bar
+  progressBarContainer.addEventListener("click", (event) => {
+    const rect = progressBarContainer.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const percent = x / rect.width;
+    const seekTime = audio.duration * percent;
+    audio.currentTime = seekTime;
+  });
+  // Spacebar to play/pause
+document.addEventListener("keydown", function (event) {
+  if (event.code === "Space") {
+    event.preventDefault(); // Prevent scrolling
+    playButton.click();     // Simulate click on play button
+  }
+  });
+
 </script>
 
 </body>
 </html>
 """)
+
 
 
 

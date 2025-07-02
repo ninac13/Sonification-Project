@@ -68,8 +68,9 @@ def index():
 
   <!-- Demo Placeholder Card -->
   <div class="container">
-    <h1>DEMO ACTIVITY UNDER HERE</h1>
-    <p>Ready to begin?</p>
+    <h1>SONIFIED DEMONSTRATION ACTIVITY
+                                  Read below before you begin</h1>
+    <p> There are two DNA sequences that will be playing simultaneously. They will sound identical (You will hear one musical note playing at a time until you hear the mutation.) The mutation will sound like two distinct notes. Once you hear the mutation click the button to mark on the audio file that you have found the mutation. You can rewind the audio player by clicking on the point you want to rehear or dragging the playhead to where you want to rehear. For those who are on laptop can also use your spacebar to play or pause the audio. </p>
     <a href="{{ url_for('sonify_demo.index') }}" class="button">
       START DEMO ACTIVITY
     </a>
