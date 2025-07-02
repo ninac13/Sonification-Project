@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
 
 
 def create_app():
@@ -6,6 +6,7 @@ def create_app():
 
 
    # existing blueprint imports…
+   from ParticipantInfoView.participantInfoView import bp as participant_info_bp
    from SelectModeViews.sonifyView      import bp as sonify_bp
    from SelectModeViews.visualView      import bp as visual_bp
    from ViewsDEMO.visualDEMO            import bp as visual_demo_bp
@@ -19,7 +20,9 @@ def create_app():
    from FINISHEDVIEW.finishedview       import bp as finished_view_bp
 
 
+
    # register all blueprints
+   app.register_blueprint(participant_info_bp)
    app.register_blueprint(sonify_bp)
    app.register_blueprint(visual_bp)
    app.register_blueprint(visual_demo_bp)
@@ -35,17 +38,16 @@ def create_app():
 
 
 
-   @app.route("/")
-   def index():
-       return render_template("index.html")
 
+   @app.route('/')
+   def index():
+        # send everyone to your new form
+      return redirect(url_for('participant_info.participant_info'))
 
    return app
 
-
 if __name__ == "__main__":
-   create_app().run(debug=True)
-
+    create_app().run(debug=True)
 
 
 

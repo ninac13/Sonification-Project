@@ -62,8 +62,6 @@ def index():
   <!-- Welcome Card -->
   <div class="container">
     <h1>Welcome to the Visual Analysis Group!</h1>
-    <p>If you selected the wrong mode, click below to return:</p>
-    <a href="{{ url_for('index') }}" class="button">← Back to Mode Selection</a>
   </div>
 
   <!-- Demo Placeholder Card -->
