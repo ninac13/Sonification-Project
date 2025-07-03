@@ -14,6 +14,8 @@ def show_results():
     millis  = elapsed_ms % 1000
     formatted = f"{minutes:02d}:{seconds:02d}:{millis:03d}"
 
+    misplaced = used_markers - accuracy
+
     return render_template_string("""
 <!doctype html>
 <html lang="en">
@@ -86,6 +88,7 @@ def show_results():
     <p class="time">
       Mutations found: <strong>{{ accuracy }}/1</strong>
     </p>
+    <p class="time">Misplaced markers: <strong>{{ misplaced }}/{{used_markers}}</strong></p>
   </div>
 
   <div class="card">
@@ -102,5 +105,6 @@ def show_results():
 </html>
         """, formatted=formatted,
             used_markers=used_markers,   
-            accuracy=accuracy
+            accuracy=accuracy,
+            misplaced = misplaced
     )
