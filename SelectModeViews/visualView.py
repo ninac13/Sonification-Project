@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template_string, url_for
+from flask import Blueprint, render_template_string, request, url_for
 
 bp = Blueprint("visual", __name__, url_prefix="/visual")
 
 @bp.route("/")
 def index():
+    participant = request.args.get("participant", None)
     return render_template_string("""
 <!doctype html>
 <html lang="en">
@@ -12,67 +13,81 @@ def index():
   <title>Visual Analysis Group</title>
   <style>
     body {
+      margin-top: 2.5rem; /* increased top spacing */
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #e0e7ff;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
       min-height: 100vh;
-      margin: 0;
-      padding-top: 40px;
     }
-    .container {
-      width: 80%;
-      max-width: 600px;
-      text-align: center;
+    .participant-badge {
+      margin-top: 0.5rem;
+      background: #6366f1;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-weight: 500;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      display: inline-block;
+    }
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 640px;
+      padding: 2rem 1rem;
+      box-sizing: border-box;
+    }
+    .card {
       background: #fff;
-      padding: 40px 60px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      margin-bottom: 1.5rem;
+      padding: 2rem;
+      text-align: center;
     }
-    h1 {
-      margin-bottom: 24px;
-      font-size: 28px;
-      color: #333;
+    .card h2 {
+      margin-top: 0;
+      color: #4f46e5;
+      font-size: 1.5rem;
     }
-    p {
-      color: #555;
-      margin-bottom: 16px;
+    .card p {
+      color: #4b5563;
+      line-height: 1.6;
+      margin: 1rem 0;
     }
     .button {
       display: inline-block;
-      margin-top: 16px;
-      padding: 12px 24px;
-      font-size: 16px;
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
       color: #fff;
-      background-color: #007BFF;
+      background: #4f46e5;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
       text-decoration: none;
-      transition: background-color .2s ease-in-out;
+      transition: background 0.2s;
     }
     .button:hover {
-      background-color: #0056b3;
+      background: #4338ca;
     }
   </style>
 </head>
 <body>
-  <!-- Welcome Card -->
-  <div class="container">
-    <h1>Welcome to the Visual Analysis Group!</h1>
+  <div class="card">
+    <h1>Visual Analysis Group</h1>
+    {% if participant %}
+      <div class="participant-badge">Participant {{ participant }}</div>
+    {% endif %}
   </div>
-
-  <!-- Demo Placeholder Card -->
-  <div class="container">
-    <h1>DEMO ACTIVITY UNDER HERE</h1>
-    <p>Ready to begin?</p>
-<a href="{{ url_for('visual_demo.index') }}" class="button">
-  START DEMO ACTIVITY
-</a>  
-  </div>
-
+  <main>
+    <div class="card">
+      <h2>Demonstration Activity</h2>
+      <p><strong>Ready to begin? Click below to start the guided demo.</strong></p>
+      <a href="{{ url_for('visual_demo.index') }}" class="button">Start Demo &rarr;</a>
+    </div>
+  </main>
 </body>
 </html>
-    """)
+    """, participant=participant)

@@ -228,9 +228,9 @@ def participant_info():
         print(f"Participant: {participant_number}, Age: {age}, Date: {day}, Type: {p_type}, Group: {group}")
 
         if group == 'sonification':
-            return redirect(url_for('sonify.index'))
+            return redirect(url_for('sonify.index', participant=participant_number))
         elif group == 'visual':
-            return redirect(url_for('visual.index'))
+            return redirect(url_for('visual.index', participant=participant_number))
         else:
             return redirect(url_for('participant_info.participant_info'))
 
