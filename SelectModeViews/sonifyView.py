@@ -87,7 +87,7 @@ def index():
       <h3>Read below before you begin</h3>
       <p> There are two DNA sequences that will be playing simultaneously. They will sound identical (You will hear one musical note playing at a time until you hear the mutation.) The mutation will sound like two distinct notes. Once you hear the mutation click the button to mark on the audio file that you have found the mutation. You can rewind the audio player by clicking on the point you want to rehear or dragging the playhead to where you want to rehear. For those who are on laptop can also use your spacebar to play or pause the audio. </p>
       <p><strong>Ready to begin? Click below to start the guided demo.</strong></p>
-      <a href="{{ url_for('visual_demo.index') }}" class="button">Start Demo &rarr;</a>
+      <a href="{{ url_for('sonify_demo.index') }}" class="button">Start Demo &rarr;</a>
     </div>
   </main>
 </body>
