@@ -119,12 +119,10 @@ _FORM_HTML = """
       margin: 0.5rem;
     }
     .btn-confirm {
-      background: #28a745;
-      color: #fff;
+      background: #77DD77;
     }
     .btn-cancel {
-      background: #dc3545;
-      color: #fff;
+      background: #FF6961;
     }
   </style>
 </head>
@@ -132,18 +130,25 @@ _FORM_HTML = """
   <div class="card">
     <h1>Welcome to our DNA Analysis Study!</h1>
     <form id="participantForm" method="post">
-      <label for="participant_number">Participant #</label>
-      <input type="text" id="participant_number" name="participant_number" placeholder="e.g. 001" required>
+      <label for="participant_number">Your Participant #</label>
+      <input type="text" id="participant_number" name="participant_number" placeholder="e.g. 1" required>
 
-      <label for="age">Age</label>
-      <input type="number" id="age" name="age" placeholder="e.g. 25" required>
+      <label for="age">Your Age</label>
+      <input type="number" id="age" name="age" placeholder="e.g. 13" required>
 
-      <label for="day">Date</label>
+      <label for="day">Today's Date</label>
       <input type="date" id="day" name="day" required>
+      
+      <label for="type">Are you a student or teacher?</label>
+      <select id="type" name="type" required>
+        <option value="" disabled selected>Select...</option>
+        <option value="student">Student</option>
+        <option value="teacher">Teacher</option>
+      </select>
 
       <label for="group">Group</label>
       <select id="group" name="group" required>
-        <option value="" disabled selected>Select group…</option>
+        <option value="" disabled selected>Select group...</option>
         <option value="sonification">Sonification</option>
         <option value="visual">Visual</option>
       </select>
@@ -160,6 +165,7 @@ _FORM_HTML = """
         <li><strong>Participant #:</strong> <span id="confirmParticipant"></span></li>
         <li><strong>Age:</strong> <span id="confirmAge"></span></li>
         <li><strong>Date:</strong> <span id="confirmDay"></span></li>
+        <li><strong>Type:</strong> <span id="confirmType"></span></li>
         <li><strong>Group:</strong> <span id="confirmGroup"></span></li>
       </ul>
       <button id="yesBtn" class="btn btn-confirm">Yes, it&#39;s correct</button>
@@ -177,12 +183,14 @@ _FORM_HTML = """
       participant: document.getElementById('participant_number'),
       age: document.getElementById('age'),
       day: document.getElementById('day'),
+      type: document.getElementById('type'),
       group: document.getElementById('group')
     };
     const confirmSpans = {
       participant: document.getElementById('confirmParticipant'),
       age: document.getElementById('confirmAge'),
       day: document.getElementById('confirmDay'),
+      type: document.getElementById('confirmType'),
       group: document.getElementById('confirmGroup')
     };
 
@@ -190,6 +198,7 @@ _FORM_HTML = """
       confirmSpans.participant.textContent = fields.participant.value;
       confirmSpans.age.textContent = fields.age.value;
       confirmSpans.day.textContent = fields.day.value;
+      confirmSpans.type.textContent = fields.type.value.charAt(0).toUpperCase() + fields.type.value.slice(1);
       confirmSpans.group.textContent = fields.group.value.charAt(0).toUpperCase() + fields.group.value.slice(1);
       backdrop.style.display = 'flex';
     });
@@ -213,9 +222,10 @@ def participant_info():
         participant_number = request.form['participant_number']
         age                = request.form['age']
         day                = request.form['day']
+        p_type             = request.form['type']
         group              = request.form['group']
 
-        print(f"Participant: {participant_number}, Age: {age}, Day: {day}, Group: {group}")
+        print(f"Participant: {participant_number}, Age: {age}, Date: {day}, Type: {p_type}, Group: {group}")
 
         if group == 'sonification':
             return redirect(url_for('sonify.index'))

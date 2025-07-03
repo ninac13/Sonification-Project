@@ -17,7 +17,11 @@ def index():
         records = {rec.id: str(rec.seq) for rec in SeqIO.parse(DEMO_FASTA, "fasta")}
         nonmut = records["HBB_sickle_cell_demo_nonmutated"]
         mut    = records["HBB_sickle_cell_demo_mutated"]
-
+        mutation_index = next(
+            (i for i, (a, b) in enumerate(zip(nonmut, mut)) if a != b),
+            None
+        )
+        # Render the demo page (timer starts as soon as this page loads)
         return render_template_string("""
 <!doctype html>
 <html lang="en">
@@ -74,91 +78,126 @@ def index():
     <div id="count">You have <span id="remaining">10</span> markers left.</div>
   </div>
   <div class="container nav-buttons">
-    <button onclick="location.href='{{ url_for('visual_trial1.index') }}'">
-      Finished Demo and Go to Trial 1 →
+    <!-- clicking this will stop the timer and send elapsed ms -->
+    <button type="button" onclick="finishDemo()">
+      Finish Demo and Get Results →
     </button>
   </div>
 
   <script>
+    // 1) Hidden timer start
+    const demoStart = Date.now();
+    const mutationIndex = {{ mutation_index }};
+    // 2) Called when demo is finished
+    function finishDemo() {
+      const elapsedMs = Date.now() - demoStart;
+      const remainingCount = parseInt(document.getElementById('remaining').textContent, 10);
+      const usedMarkers   = 10 - remainingCount;
+
+      // determine accuracy:
+      let found = false;
+      document.querySelectorAll('.marker').forEach(m => {
+        if (m.dataset.snappedTo == mutationIndex) { found = true; }
+      });
+      const accuracy = found ? 1 : 0;
+
+      // redirect with t, m, and acc
+      window.location.href = "{{ url_for('visual_results.show_results') }}"
+        + "?t=" + elapsedMs
+        + "&m=" + usedMarkers
+        + "&acc=" + accuracy;
+    }
+
+    // 3) Scroll-sync + slider
     const nonmut = document.getElementById('nonmut-box');
     const mut    = document.getElementById('mut-box');
     const slider = document.getElementById('scroll-slider');
-    mut.addEventListener('scroll', () => nonmut.scrollLeft = mut.scrollLeft);
 
     function updateSlider() {
       const maxScroll = mut.scrollWidth - mut.clientWidth;
       slider.max = maxScroll;
       slider.value = mut.scrollLeft;
     }
-
-    slider.addEventListener('input', e => {
-      mut.scrollLeft = e.target.value;
-      nonmut.scrollLeft = e.target.value;
-    });
-
     mut.addEventListener('scroll', () => {
       nonmut.scrollLeft = mut.scrollLeft;
       slider.value = mut.scrollLeft;
     });
-
+    slider.addEventListener('input', e => {
+      mut.scrollLeft = e.target.value;
+      nonmut.scrollLeft = e.target.value;
+    });
     window.addEventListener('load', updateSlider);
     window.addEventListener('resize', updateSlider);
 
+    // 4) Marker drag & drop with live remaining count
     const markersDiv = document.getElementById('markers');
-    const letters = Array.from(document.querySelectorAll('.mut-letter'));
-    let remaining = 10;
+    const letters    = Array.from(document.querySelectorAll('.mut-letter'));
+    let remaining     = 10;
     const remainingEl = document.getElementById('remaining');
 
-    function updateCount() { remainingEl.textContent = remaining; }
+    // helper to sync JS var → DOM
+    function updateCount() {
+      remainingEl.textContent = remaining;
+    }
+    // initialize on load
+    updateCount();
 
     document.querySelectorAll('.marker').forEach(marker => {
       let wasSnapped = false;
+
       marker.addEventListener('dragstart', e => {
         wasSnapped = !!marker.dataset.snappedTo;
         marker.classList.add('dragging');
-        const rect = marker.getBoundingClientRect();
-        e.dataTransfer.setDragImage(marker, e.clientX - rect.left, e.clientY - rect.top);
       });
 
       marker.addEventListener('dragend', e => {
         marker.classList.remove('dragging');
-        const mRect = markersDiv.getBoundingClientRect();
-        if (e.clientX >= mRect.left && e.clientX <= mRect.right
-            && e.clientY >= mRect.top && e.clientY <= mRect.bottom) {
+        const poolRect = markersDiv.getBoundingClientRect();
+
+        // dropped back in pool?
+        if (e.clientX >= poolRect.left && e.clientX <= poolRect.right &&
+            e.clientY >= poolRect.top  && e.clientY <= poolRect.bottom) {
           delete marker.dataset.snappedTo;
           markersDiv.appendChild(marker);
-          marker.style.position = '';
-          marker.style.left = '';
-          marker.style.top = '';
-          marker.style.transform = '';
-          if (wasSnapped) { remaining++; updateCount(); }
+          marker.style.position = marker.style.left = marker.style.top = marker.style.transform = '';
+          if (wasSnapped) {
+            remaining++;
+            updateCount();
+          }
         } else {
+          // dropped onto a letter
           let closest = null, bestDist = Infinity;
           letters.forEach(letter => {
             const r = letter.getBoundingClientRect();
-            const cx = r.left + r.width/2;
-            const cy = r.top + r.height/2;
-            const d = Math.hypot(e.clientX - cx, e.clientY - cy);
-            if (d < bestDist) { bestDist = d; closest = letter; }
+            const d = Math.hypot(e.clientX - (r.left + r.width/2),
+                                 e.clientY - (r.top  + r.height/2));
+            if (d < bestDist) {
+              bestDist = d;
+              closest  = letter;
+            }
           });
           if (closest) {
             closest.appendChild(marker);
             marker.style.position  = 'absolute';
             marker.style.left      = '50%';
             marker.style.top       = '50%';
-            marker.style.transform = 'translate(-50%, -50%)';
-            if (!wasSnapped) { remaining--; updateCount(); }
+            marker.style.transform = 'translate(-50%,-50%)';
+            if (!wasSnapped) {
+              remaining--;
+              updateCount();
+            }
             marker.dataset.snappedTo = closest.dataset.index;
           }
         }
       });
     });
 
+    // allow drop
     document.body.addEventListener('dragover', e => e.preventDefault());
   </script>
 </body>
 </html>
-        """, nonmut=nonmut, mut=mut)
+        """, nonmut=nonmut, mut=mut, mutation_index=mutation_index)
 
     # GET: show the start button only (unchanged)
     return render_template_string("""
@@ -219,11 +258,11 @@ def index():
     <h2>Read Before Starting</h2>
     <ul class="instructions">
       <li>Try your best to finish finding the mutation(s), if there are any at all, as quickly as you can.</li>
+      <li>When you are done analyzing, you <strong>must immediately</strong> click the 'Finish Demo' button as your time is recorded.</li>
       <li>There are <strong>10 markers</strong> you can use to drag onto a letter of a sequence.</li>
       <li>You do <em>not</em> need to use all 10—only mark the letter where you think a mutation exists.</li>
       <li>Markers can only be placed on letters in the mutated sequence.</li>
       <li>You can drag markers back to the pool to reuse them.</li>
-      <li>If you made a mistake, you can drag a marker from one letter to the next.</li>
     </ul>
   </div>
     <form method="post">
