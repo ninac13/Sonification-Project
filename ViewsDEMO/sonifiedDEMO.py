@@ -11,7 +11,6 @@ def index():
   <meta charset="utf-8">
   <title>Sonified Demo Activity</title>
   <style>
-    /* All your existing styles remain unchanged */
     body {
       display: flex;
       flex-direction: column;
@@ -128,7 +127,7 @@ def index():
 
   <div class="container">
     <h1>Click 'Play' below to begin your Demo</h1>
-    <p> When you hear a mutation (two notes playing at the same time) click the red button in order to mark where you have heard the mutation. Afterwards, click submit to see if you are correct! There is only one mutation so you will only need to utilize one marker.</p>
+    <p>When you hear a mutation (two notes playing at the same time), click the red button to mark where you heard it. Afterwards, click Submit to see if you are correct! There is only one mutation, so you'll only need to use one marker.</p>
 
     <div class="audio-controls">
       <button id="playButton">Play</button>
@@ -149,7 +148,6 @@ def index():
       <span id="rateDisplay">1x</span>
     </div>
 
-    <!-- 🔁 Changed button below -->
     <button class="button" id="finishButton">Finish Demo and Get Results</button>
     <p id="resultMessage"></p>
 
@@ -158,7 +156,6 @@ def index():
       Your browser does not support the audio element.
     </audio>
   </div>
-
 
 <script>
   const audio = document.getElementById("dnaAudio");
@@ -169,9 +166,11 @@ def index():
   const markerLabel = document.getElementById("markerLabel");
   const markerContainer = document.getElementById("markerContainer");
   const progressBarContainer = document.getElementById("progressBarContainer");
+  const finishButton = document.getElementById("finishButton");
 
   const maxMarkers = 10;
   let remainingMarkers = maxMarkers;
+  let usedMarkers = [];
 
   let startTime = null;
   let playClicked = false;
@@ -220,12 +219,15 @@ def index():
     marker.addEventListener("click", (event) => {
       event.stopPropagation();
       marker.remove();
+      const index = usedMarkers.findIndex(t => Math.abs(t - currentTime) < 0.5);
+      if (index !== -1) usedMarkers.splice(index, 1);
       remainingMarkers++;
       markerButton.textContent = remainingMarkers;
       markerLabel.textContent = `/10 markers left`;
     });
 
     markerContainer.appendChild(marker);
+    usedMarkers.push(currentTime);
     remainingMarkers--;
     markerButton.textContent = remainingMarkers;
     markerLabel.textContent = `/10 markers left`;
@@ -255,76 +257,26 @@ def index():
     }
   });
 
-  const finishButton = document.getElementById("finishButton");
-
   finishButton.addEventListener("click", () => {
+    if (!playClicked) {
+      alert("Please play the audio first before finishing the demo.");
+      return;
+    }
+
     const endTime = performance.now();
     const elapsed = Math.floor(endTime - (startTime || endTime)); // ms
-    const markers = markerContainer.querySelectorAll(".marker-bar");
-    const correctTime = 11;
-    const errorMargin = 2;
-    let correctCount = 0;
+    const correctTime = 11; // mutation occurs at 11s
+    const errorMargin = 2; // ±2s window
 
-    markers.forEach(marker => {
-      const percent = parseFloat(marker.style.left);
-      const markerTime = (percent / 100) * audio.duration;
-      if (Math.abs(markerTime - correctTime) <= errorMargin) {
-        correctCount++;
-      }
-    });
-
-    const usedMarkers = markers.length;
-
-    const url = `/sonify/demo/results?t=${elapsed}&m=${usedMarkers}&acc=${correctCount}`;
-    window.location.href = url;
-  });
-</script>
-<script>
-let firstPlayTime = null;
-let usedMarkers = [];
-const mutationTime = 11; // seconds
-
-// Start timer on first play
-document.getElementById("playButton").addEventListener("click", function () {
-    if (!firstPlayTime) {
-        firstPlayTime = Date.now();
-    }
-});
-
-// This function should already exist where you handle marker placement
-// Example (you may already have something similar):
-function addMarker(currentTime) {
-    usedMarkers.push(currentTime);
-    // your existing code to render marker...
-}
-
-// Finish button logic
-document.getElementById("finishButton").addEventListener("click", function () {
-    if (!firstPlayTime) {
-        alert("Please play the audio first before finishing the demo.");
-        return;
-    }
-
-    const elapsed = Date.now() - firstPlayTime;
-
-    const accuracy = usedMarkers.filter(t =>
-        Math.abs(t - mutationTime) <= 2
+    const correctCount = usedMarkers.filter(t =>
+      Math.abs(t - correctTime) <= errorMargin
     ).length;
 
-    // Redirect with data to the results page
-    const url = `/sonify/demo/results?t=${elapsed}&m=${usedMarkers.length}&acc=${accuracy}`;
+    const url = `/sonify/demo/results?t=${elapsed}&m=${usedMarkers.length}&acc=${correctCount}`;
     window.location.href = url;
-});
+  });
 </script>
 
 </body>
 </html>
 """)
-
-
-
-
-
-
-
-
