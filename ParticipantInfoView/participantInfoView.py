@@ -288,14 +288,33 @@ def show_data():
       body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background: #eef2f7;
+        margin: 0;
         padding: 2rem;
+        display: flex;
+        justify-content: center;
+      }
+      .card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        padding: 2rem;
+        max-width: 900px;
+        width: 100%;
+        animation: fadeIn 0.6s ease-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 1.5rem;
       }
       table {
         border-collapse: collapse;
-        width: 80%;
-        margin: 2rem auto;
+        width: 100%;
         background: #fff;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         border-radius: 8px;
         overflow: hidden;
       }
@@ -312,27 +331,90 @@ def show_data():
       tr:hover {
         background-color: #f1f1f1;
       }
-      h2 {
-        text-align: center;
-        color: #333;
-        margin-top: 2rem;
-      }
       a {
-        display: block;
-        text-align: center;
-        margin-top: 2rem;
         color: #6c8efb;
         text-decoration: none;
         font-weight: bold;
       }
+      .delete-link {
+        color: #FF5C5C;
+        text-decoration: none;
+        font-size: 1.2rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      tr:hover .delete-link {
+        opacity: 1;
+      }
+      .back-link {
+        display: block;
+        text-align: center;
+        margin-top: 2rem;
+      }
     </style>
     """
 
-    table = "<h2>Collected Participant Data</h2><table>"
-    for i, row in enumerate(rows):
-        table += "<tr>" + "".join(f"<th>{cell}</th>" if i == 0 else f"<td>{cell}</td>" for cell in row) + "</tr>"
-    table += "</table><a href='/participant_info'>Back</a>"
+    html = "<div class='card'>"
+    html += "<h2>Collected Participant Data</h2>"
+    html += "<table>"
 
-    return style + table
+    for i, row in enumerate(rows):
+        html += "<tr>"
+        for cell in row:
+            tag = "th" if i == 0 else "td"
+            html += f"<{tag}>{cell}</{tag}>"
+        if i == 0:
+            html += "<th>Delete</th>"
+        else:
+            html += f"<td><a href='#' class='delete-link' data-index='{i}' title='Delete this entry'>✕</a></td>"
+        html += "</tr>"
+
+    html += "</table>"
+    html += "<a href='/participant_info' class='back-link'>Back</a></div>"
+    html += """
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.delete-link').forEach(link => {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      const rowIndex = this.getAttribute('data-index');
+      const row = this.closest('tr');
+
+      fetch(`/participant_info/delete/${rowIndex}`)
+        .then(response => {
+          if (response.ok) {
+            row.remove(); // Remove row from table
+          } else {
+            alert("Failed to delete row.");
+          }
+        });
+    });
+  });
+});
+</script>
+"""
+
+
+    return style + html
+
+
+@bp.route('/delete/<int:row_index>', methods=['GET'])
+def delete_row(row_index):
+    if not os.path.isfile(DATA_FILE):
+        return redirect(url_for('participant_info.participant_info'))
+
+    with open(DATA_FILE, newline='') as f:
+        rows = list(csv.reader(f))
+
+    if 0 < row_index < len(rows):  # Avoid deleting the header
+        rows.pop(row_index)
+
+    with open(DATA_FILE, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerows(rows)
+
+    return "Deleted", 200
+
+
 
 
