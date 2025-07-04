@@ -11,6 +11,7 @@ def index():
   <meta charset="utf-8">
   <title>Sonified Demo Activity</title>
   <style>
+    /* All your existing styles remain unchanged */
     body {
       display: flex;
       flex-direction: column;
@@ -57,7 +58,6 @@ def index():
     .button:hover {
       background: #0056b3;
     }
-
     .audio-controls {
       display: flex;
       align-items: center;
@@ -65,7 +65,6 @@ def index():
       margin-top: 20px;
       justify-content: center;
     }
-
     .audio-controls button {
       font-size: 18px;
       padding: 10px 20px;
@@ -74,7 +73,6 @@ def index():
       cursor: pointer;
       border-radius: 5px;
     }
-
     #progressBarContainer {
       position: relative;
       width: 100%;
@@ -85,24 +83,20 @@ def index():
       overflow: hidden;
       cursor: pointer;
     }
-
     #progressBar {
       position: absolute;
       height: 100%;
       background: #007BFF;
       width: 0%;
     }
-
     .marker-bar {
-    position: absolute;
-    top: 0;
-    height: 100%;
-    width: 2px;
-    background: red;
-    cursor: pointer; /* ← makes marker feel clickable */
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 2px;
+      background: red;
+      cursor: pointer;
     }
-
-
     #markerButton {
       background-color: red;
       color: white;
@@ -115,18 +109,15 @@ def index():
       cursor: pointer;
       margin-top: 20px;
     }
-
     .speed-controls {
       display: flex;
       align-items: center;
       justify-content: center;
       margin-top: 10px;
     }
-
     .speed-controls label {
       margin-right: 10px;
     }
-
     .speed-controls input[type=range] {
       width: 150px;
       margin: 0 10px;
@@ -149,20 +140,18 @@ def index():
       <div id="markerContainer"></div>
     </div>
 
-    <!-- Marker Controls -->
     <button id="markerButton">10</button>
     <span id="markerLabel">/10 markers left</span>
 
-    <!-- Speed Controls -->
     <div class="speed-controls">
       <label for="playbackRate">Speed:</label>
       <input type="range" id="playbackRate" min="0.5" max="2" step="0.1" value="1">
       <span id="rateDisplay">1x</span>
     </div>
-    <!-- Submit Button -->
-    <button class="button" id="submitButton">Submit</button>
-    <p id="resultMessage"></p>
 
+    <!-- 🔁 Changed button below -->
+    <button class="button" id="finishButton">Finish Demo and Get Results</button>
+    <p id="resultMessage"></p>
 
     <audio id="dnaAudio" hidden>
       <source src="{{ url_for('static', filename='demo_sonification.wav') }}" type="audio/wav">
@@ -170,13 +159,6 @@ def index():
     </audio>
   </div>
 
-  <div class="container">
-    <h1>Finished with Demo?</h1>
-    <p>When you’re ready, continue to the first trial:</p>
-    <a href="{{ url_for('sonify_trial1.index') }}" class="button">
-      Go to Sonification Trial 1
-    </a>
-  </div>
 
 <script>
   const audio = document.getElementById("dnaAudio");
@@ -191,8 +173,14 @@ def index():
   const maxMarkers = 10;
   let remainingMarkers = maxMarkers;
 
-  // Play/Pause functionality
+  let startTime = null;
+  let playClicked = false;
+
   playButton.addEventListener("click", () => {
+    if (!playClicked) {
+      startTime = performance.now();
+      playClicked = true;
+    }
     if (audio.paused) {
       audio.play();
       playButton.textContent = "Pause";
@@ -202,7 +190,6 @@ def index():
     }
   });
 
-  // Update time and progress bar
   audio.addEventListener("timeupdate", () => {
     const current = audio.currentTime;
     const duration = audio.duration;
@@ -219,36 +206,31 @@ def index():
     return `${m}:${s}`;
   }
 
-  // Marker logic with removable markers
-markerButton.addEventListener("click", () => {
-  if (remainingMarkers <= 0 || audio.paused || audio.currentTime === 0) return;
+  markerButton.addEventListener("click", () => {
+    if (remainingMarkers <= 0 || audio.paused || audio.currentTime === 0) return;
 
-  const duration = audio.duration;
-  const currentTime = audio.currentTime;
-  const percent = (currentTime / duration) * 100;
+    const duration = audio.duration;
+    const currentTime = audio.currentTime;
+    const percent = (currentTime / duration) * 100;
 
-  const marker = document.createElement("div");
-  marker.className = "marker-bar";
-  marker.style.left = `${percent}%`;
+    const marker = document.createElement("div");
+    marker.className = "marker-bar";
+    marker.style.left = `${percent}%`;
 
-  // ➕ Add click-to-remove behavior
-  marker.addEventListener("click", (event) => {
-  event.stopPropagation();  // ⛔ prevent progress bar from seeking
-  marker.remove();
-  remainingMarkers++;
-  markerButton.textContent = remainingMarkers;
-  markerLabel.textContent = `/10 markers left`;
+    marker.addEventListener("click", (event) => {
+      event.stopPropagation();
+      marker.remove();
+      remainingMarkers++;
+      markerButton.textContent = remainingMarkers;
+      markerLabel.textContent = `/10 markers left`;
+    });
+
+    markerContainer.appendChild(marker);
+    remainingMarkers--;
+    markerButton.textContent = remainingMarkers;
+    markerLabel.textContent = `/10 markers left`;
   });
 
-
-  markerContainer.appendChild(marker);
-  remainingMarkers--;
-  markerButton.textContent = remainingMarkers;
-  markerLabel.textContent = `/10 markers left`;
-});
-
-
-  // Speed control
   const slider = document.getElementById("playbackRate");
   const rateDisplay = document.getElementById("rateDisplay");
 
@@ -258,7 +240,6 @@ markerButton.addEventListener("click", () => {
     rateDisplay.textContent = `${rate.toFixed(1)}x`;
   });
 
-  // SEEKING via progress bar
   progressBarContainer.addEventListener("click", (event) => {
     const rect = progressBarContainer.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -266,48 +247,81 @@ markerButton.addEventListener("click", () => {
     const seekTime = audio.duration * percent;
     audio.currentTime = seekTime;
   });
-  // Spacebar to play/pause
-document.addEventListener("keydown", function (event) {
-  if (event.code === "Space") {
-    event.preventDefault(); // Prevent scrolling
-    playButton.click();     // Simulate click on play button
-  }
-  });
-  // Submit button logic
-const submitButton = document.getElementById("submitButton");
-const resultMessage = document.getElementById("resultMessage");
 
-submitButton.addEventListener("click", () => {
-  const markers = markerContainer.querySelectorAll(".marker-bar");
-  const correctTime = 11; // seconds
-  const errorMargin = 2;
-
-  let correct = false;
-
-  markers.forEach(marker => {
-    const percent = parseFloat(marker.style.left); // e.g., "28.3%"
-    const markerTime = (percent / 100) * audio.duration;
-
-    if (Math.abs(markerTime - correctTime) <= errorMargin) {
-      correct = true;
+  document.addEventListener("keydown", function (event) {
+    if (event.code === "Space") {
+      event.preventDefault();
+      playButton.click();
     }
   });
 
-  if (correct) {
-    resultMessage.textContent = "✅ Correct! You found the mutation. 0:11 seconds is exactly where the mutation is. If you answered between the range 0:09 - 0:13 seconds you are correct";
-    resultMessage.style.color = "green";
-  } else {
-    resultMessage.textContent = "❌ Not quite. Try listening again.";
-    resultMessage.style.color = "red";
-  }
+  const finishButton = document.getElementById("finishButton");
+
+  finishButton.addEventListener("click", () => {
+    const endTime = performance.now();
+    const elapsed = Math.floor(endTime - (startTime || endTime)); // ms
+    const markers = markerContainer.querySelectorAll(".marker-bar");
+    const correctTime = 11;
+    const errorMargin = 2;
+    let correctCount = 0;
+
+    markers.forEach(marker => {
+      const percent = parseFloat(marker.style.left);
+      const markerTime = (percent / 100) * audio.duration;
+      if (Math.abs(markerTime - correctTime) <= errorMargin) {
+        correctCount++;
+      }
+    });
+
+    const usedMarkers = markers.length;
+
+    const url = `/sonify/demo/results?t=${elapsed}&m=${usedMarkers}&acc=${correctCount}`;
+    window.location.href = url;
+  });
+</script>
+<script>
+let firstPlayTime = null;
+let usedMarkers = [];
+const mutationTime = 11; // seconds
+
+// Start timer on first play
+document.getElementById("playButton").addEventListener("click", function () {
+    if (!firstPlayTime) {
+        firstPlayTime = Date.now();
+    }
 });
 
+// This function should already exist where you handle marker placement
+// Example (you may already have something similar):
+function addMarker(currentTime) {
+    usedMarkers.push(currentTime);
+    // your existing code to render marker...
+}
 
+// Finish button logic
+document.getElementById("finishButton").addEventListener("click", function () {
+    if (!firstPlayTime) {
+        alert("Please play the audio first before finishing the demo.");
+        return;
+    }
+
+    const elapsed = Date.now() - firstPlayTime;
+
+    const accuracy = usedMarkers.filter(t =>
+        Math.abs(t - mutationTime) <= 2
+    ).length;
+
+    // Redirect with data to the results page
+    const url = `/sonify/demo/results?t=${elapsed}&m=${usedMarkers.length}&acc=${accuracy}`;
+    window.location.href = url;
+});
 </script>
 
 </body>
 </html>
 """)
+
+
 
 
 

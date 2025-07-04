@@ -12,6 +12,7 @@ def create_app():
    from ViewsDEMO.visualDEMO            import bp as visual_demo_bp
    from ViewsDEMO.sonifiedDEMO          import bp as sonify_demo_bp
    from DEMORESULTS.visualresults       import bp as visual_results
+   from DEMORESULTS.sonifydemoresults   import bp as sonfify_demo_results
    from Trial1Views.visualTrial1        import bp as visual_trial1_bp
    from Trial1Views.sonifyTrial1        import bp as sonify_trial1_bp
    from Trial2Views.sonifyTrial2        import bp as sonify_trial2_bp
