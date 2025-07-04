@@ -14,6 +14,7 @@ DEMO_FASTA = os.path.join(
 def index():
     if request.method == "POST":
         # Load both records from the FASTA
+        participant = request.args.get("participant")
         records = {rec.id: str(rec.seq) for rec in SeqIO.parse(DEMO_FASTA, "fasta")}
         nonmut = records["HBB_sickle_cell_demo_nonmutated"]
         mut    = records["HBB_sickle_cell_demo_mutated"]
@@ -21,6 +22,7 @@ def index():
             (i for i, (a, b) in enumerate(zip(nonmut, mut)) if a != b),
             None
         )
+        participant=participant
         # Render the demo page (timer starts as soon as this page loads)
         return render_template_string("""
 <!doctype html>
@@ -105,7 +107,8 @@ def index():
       window.location.href = "{{ url_for('visual_results.show_results') }}"
         + "?t=" + elapsedMs
         + "&m=" + usedMarkers
-        + "&acc=" + accuracy;
+        + "&acc=" + accuracy
+        + "&participant={{ participant }}";
     }
 
     // 3) Scroll-sync + slider
@@ -197,7 +200,7 @@ def index():
   </script>
 </body>
 </html>
-        """, nonmut=nonmut, mut=mut, mutation_index=mutation_index)
+        """, nonmut=nonmut, mut=mut, mutation_index=mutation_index, participant=participant)
 
     # GET: show the start button only (unchanged)
     return render_template_string("""

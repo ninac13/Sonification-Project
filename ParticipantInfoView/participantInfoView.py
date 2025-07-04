@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template_string, request, redirect, url_for
 import csv
 import os
+import json
 
 bp = Blueprint('participant_info', __name__, url_prefix='/participant_info')
 
@@ -257,8 +258,9 @@ def participant_info():
         with open(DATA_FILE, 'a', newline='') as f:
             writer = csv.writer(f)
             if not file_exists:
-                writer.writerow(['Participant Number', 'Age', 'Date', 'Type', 'Group'])
-            writer.writerow([participant_number, age, day, p_type, group])
+                writer.writerow(['Participant Number', 'Age', 'Date', 'Group', 'Type'])
+
+            writer.writerow([participant_number, age, day, group, p_type])
 
         if group == 'sonification':
             return redirect(url_for('sonify.index', participant=participant_number))
@@ -282,7 +284,22 @@ def show_data():
     with open(DATA_FILE, newline='') as f:
         reader = csv.reader(f)
         rows = list(reader)
-
+    results = {}
+    if os.path.isfile("TrialResults/visual_trial_results.csv"):
+        with open("TrialResults/visual_trial_results.csv") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                pid = row["Participant"]
+                if pid not in results:
+                    results[pid] = {}
+                trial_num = int(row["Trial"])
+                results[pid][trial_num] = {
+                    "TimeTaken": row["TimeTaken"],
+                    "MarkersUsed": row["MarkersUsed"],
+                    "MutationsFound": row["MutationsFound"],
+                    "MisplacedMarkers": row["MisplacedMarkers"]
+                }
+                
     style = """
     <style>
       body {
@@ -351,6 +368,49 @@ def show_data():
         text-align: center;
         margin-top: 2rem;
       }
+      .participant-btn {
+        padding: 0.4rem 0.8rem;
+        font-weight: 600;
+        background-color: #6c8efb;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .participant-btn:hover {
+        background-color: #5a7ddb;
+      }
+      .overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background-color: rgba(0, 0, 0, 0.6);
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+      .popup-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 16px;
+        width: 360px;
+        max-width: 90%;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        position: relative;
+        animation: fadeIn 0.3s ease-out;
+      }
+      .close-popup {
+        position: absolute;
+        top: 8px;
+        left: 12px;
+        color: #FF5C5C;
+        font-size: 1.2rem;
+        font-weight: bold;
+        text-decoration: none;
+        cursor: pointer;
+      }
     </style>
     """
 
@@ -360,9 +420,15 @@ def show_data():
 
     for i, row in enumerate(rows):
         html += "<tr>"
-        for cell in row:
+        for j, cell in enumerate(row):
             tag = "th" if i == 0 else "td"
-            html += f"<{tag}>{cell}</{tag}>"
+            if i == 0:
+                html += f"<{tag}>{cell}</{tag}>"
+            else:
+                if j == 0:
+                    html += f"<{tag}><button class='participant-btn' data-id='{cell}'>Participant {cell}</button></{tag}>"
+                else:
+                    html += f"<{tag}>{cell}</{tag}>"
         if i == 0:
             html += "<th>Delete</th>"
         else:
@@ -371,31 +437,101 @@ def show_data():
 
     html += "</table>"
     html += "<a href='/participant_info' class='back-link'>Back</a></div>"
+
+    # Overlay + JS
     html += """
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  document.querySelectorAll('.delete-link').forEach(link => {
-    link.addEventListener('click', function (e) {
-      e.preventDefault();
-      const rowIndex = this.getAttribute('data-index');
-      const row = this.closest('tr');
+    <div class="overlay" id="popupOverlay">
+      <div class="popup-card">
+        <a class="close-popup" onclick="document.getElementById('popupOverlay').style.display='none'">✕</a>
+        <div id="popupContent">
+          <h3>Participant Info</h3>
+          <p>This is a placeholder for detailed results.</p>
+        </div>
+      </div>
+    </div>
 
-      fetch(`/participant_info/delete/${rowIndex}`)
-        .then(response => {
-          if (response.ok) {
-            row.remove(); // Remove row from table
-          } else {
-            alert("Failed to delete row.");
-          }
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // DELETE
+      document.querySelectorAll('.delete-link').forEach(link => {
+        link.addEventListener('click', function (e) {
+          e.preventDefault();
+          const rowIndex = this.getAttribute('data-index');
+          const row = this.closest('tr');
+
+          fetch(`/participant_info/delete/${rowIndex}`)
+            .then(response => {
+              if (response.ok) {
+                row.remove();
+              } else {
+                alert("Failed to delete row.");
+              }
+            });
         });
+      });
+
+      // PARTICIPANT BUTTON
+      document.querySelectorAll('.participant-btn').forEach(button => {
+        button.addEventListener('click', () => {
+          const id = button.getAttribute('data-id');
+const participantData = trialResults[id] || {};
+function cell(val) {
+  return `<td style="border: 1px solid #ccc; padding: 8px;">${val !== undefined ? val : '--'}</td>`;
+}
+
+document.getElementById('popupContent').innerHTML = `
+  <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+    <thead>
+      <tr>
+        <th style="...">Participant ${id}</th>
+        <th style="...">Trial 1</th>
+        <th style="...">Trial 2</th>
+        <th style="...">Trial 3</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="...">Time Taken</td>
+        ${cell(participantData[1]?.TimeTaken)}
+        ${cell(participantData[2]?.TimeTaken)}
+        ${cell(participantData[3]?.TimeTaken)}
+      </tr>
+      <tr>
+        <td style="...">Markers Used</td>
+        ${cell(participantData[1]?.MarkersUsed)}
+        ${cell(participantData[2]?.MarkersUsed)}
+        ${cell(participantData[3]?.MarkersUsed)}
+      </tr>
+      <tr>
+        <td style="...">Mutations Found</td>
+        ${cell(participantData[1]?.MutationsFound)}
+        ${cell(participantData[2]?.MutationsFound)}
+        ${cell(participantData[3]?.MutationsFound)}
+      </tr>
+      <tr>
+        <td style="...">Misplaced Markers</td>
+        ${cell(participantData[1]?.MisplacedMarkers)}
+        ${cell(participantData[2]?.MisplacedMarkers)}
+        ${cell(participantData[3]?.MisplacedMarkers)}
+      </tr>
+    </tbody>
+  </table>
+`;
+
+
+          document.getElementById('popupOverlay').style.display = 'flex';
+        });
+      });
     });
-  });
-});
-</script>
-"""
-
-
+    </script>
+    """
+    html += f"""
+    <script>
+      const trialResults = {json.dumps(results)};
+    </script>
+    """
     return style + html
+
 
 
 @bp.route('/delete/<int:row_index>', methods=['GET'])
@@ -414,7 +550,3 @@ def delete_row(row_index):
         writer.writerows(rows)
 
     return "Deleted", 200
-
-
-
-

@@ -1,9 +1,12 @@
-from flask import Blueprint, render_template_string, url_for
+from flask import Blueprint, render_template_string, url_for, request
+import time
+TRIAL_RESULTS_FILE = "trial_results.csv"
 
 bp = Blueprint("sonify_trial1", __name__, url_prefix="/sonification/trial1")
 
-@bp.route("/")
+@bp.route("/", methods=("GET", "POST"))
 def index():
+    participant = request.args.get("participant")
     return render_template_string("""
 <!doctype html>
 <html lang="en">

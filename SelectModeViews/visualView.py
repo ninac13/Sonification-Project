@@ -85,7 +85,7 @@ def index():
     <div class="card">
       <h2>Demonstration Activity</h2>
       <p><strong>Ready to begin? Click below to start the guided demo.</strong></p>
-      <a href="{{ url_for('visual_demo.index') }}" class="button">Start Demo &rarr;</a>
+      <a href="{{ url_for('visual_demo.index') }}?participant={{ participant }}" class="button">Start Demo &rarr;</a>
     </div>
   </main>
 </body>

@@ -2,16 +2,18 @@ from flask import Blueprint, render_template_string, request, url_for
 
 bp = Blueprint("visual_results", __name__, url_prefix="/visual/demo/results")
 
+
 @bp.route("", methods=["GET"])
 def show_results():
     elapsed_ms   = request.args.get("t", type=int, default=0)
     used_markers = request.args.get("m", type=int, default=0)
     accuracy     = request.args.get("acc", type=int, default=0)   # ← new
-
+    participant = request.args.get("participant")
     # compute MM:SS:MS
     minutes = elapsed_ms // 60000
     seconds = (elapsed_ms % 60000) // 1000
     millis  = elapsed_ms % 1000
+    participant=participant
     formatted = f"{minutes:02d}:{seconds:02d}:{millis:03d}"
 
     misplaced = used_markers - accuracy
@@ -97,7 +99,7 @@ def show_results():
   <p>Following completion of each respective trial, <strong>results will not be shown</strong> and each trial will be directly followed by the next.</p>
   </div>
   <div class="card">
-    <a href="{{ url_for('visual_trial1.index') }}" class="button">
+    <a href="{{ url_for('visual_trial1.index') }}?participant={{ participant }}" class="button">
       Proceed to Trial 1 →
     </a>
   </div>
@@ -106,5 +108,6 @@ def show_results():
         """, formatted=formatted,
             used_markers=used_markers,   
             accuracy=accuracy,
-            misplaced = misplaced
+            misplaced = misplaced,
+            participant=participant
     )
