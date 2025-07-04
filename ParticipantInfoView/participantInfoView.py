@@ -401,6 +401,13 @@ def show_data():
         position: relative;
         animation: fadeIn 0.3s ease-out;
       }
+      .scroll-container {
+        max-height: 500px;
+        overflow-y: auto;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        margin-bottom: 1rem;
+      }
       .close-popup {
         position: absolute;
         top: 8px;
@@ -416,7 +423,7 @@ def show_data():
 
     html = "<div class='card'>"
     html += "<h2>Collected Participant Data</h2>"
-    html += "<table>"
+    html += "<div class='scroll-container'><table>"
 
     for i, row in enumerate(rows):
         html += "<tr>"
@@ -435,7 +442,7 @@ def show_data():
             html += f"<td><a href='#' class='delete-link' data-index='{i}' title='Delete this entry'>✕</a></td>"
         html += "</tr>"
 
-    html += "</table>"
+    html += "</table></div>"
     html += "<a href='/participant_info' class='back-link'>Back</a></div>"
 
     # Overlay + JS
