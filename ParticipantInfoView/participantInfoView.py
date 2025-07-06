@@ -263,7 +263,7 @@ def participant_info():
             writer.writerow([participant_number, age, day, group, p_type])
 
         if group == 'sonification':
-            return redirect(url_for('sonify.index', participant=participant_number))
+            return redirect(url_for('sonify_trial1.index', participant=participant_number))
         elif group == 'visual':
             return redirect(url_for('visual.index', participant=participant_number))
         else:
@@ -299,6 +299,33 @@ def show_data():
                     "MutationsFound": row["MutationsFound"],
                     "MisplacedMarkers": row["MisplacedMarkers"]
                 }
+        # Add Sonification Trial 1 data
+    if os.path.isfile("TrialResults/sonification_trial_results.csv"):
+        with open("TrialResults/sonification_trial_results.csv") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                pid = row.get("Participant")
+                if not pid:
+                    continue
+                # Only Trial 1 matters here
+                try:
+                    trial_num = int(row.get("Trial", 1))
+                except ValueError:
+                    trial_num = 1
+                if pid not in results:
+                    results[pid] = {}
+                # Ensure we don't overwrite visual entries
+                results[pid][trial_num] = {
+                    "TimeTaken": row.get("TimeTaken", ""),
+                    "MarkersUsed": row.get("Total Markers", ""),
+                    "MutationsFound": row.get("Correct Mutations", ""),
+                    "MisplacedMarkers": row.get("Misplaced Markers", "")
+                }
+
+
+
+
+
                 
     style = """
     <style>

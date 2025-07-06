@@ -272,8 +272,8 @@ def index():
       Math.abs(t - correctTime) <= errorMargin
     ).length;
 
-    const url = `/sonify/demo/results?t=${elapsed}&m=${usedMarkers.length}&acc=${correctCount}`;
-    window.location.href = url;
+    window.location.href = `/sonification/trial1?participant=${participant}`;
+
   });
 </script>
 

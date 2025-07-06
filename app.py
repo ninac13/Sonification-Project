@@ -2,6 +2,7 @@ from flask import Flask, render_template, redirect, url_for
 
 def create_app():
    app = Flask(__name__)
+   app.secret_key = 'NinaLeaDNAYAY'
 
    # existing blueprint imports…
    from ParticipantInfoView.participantInfoView import bp as participant_info_bp

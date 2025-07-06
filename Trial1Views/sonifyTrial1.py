@@ -1,5 +1,9 @@
+from flask import session
 from flask import Blueprint, render_template_string, url_for, request
 import time
+import csv
+import os
+
 TRIAL_RESULTS_FILE = "trial_results.csv"
 
 bp = Blueprint("sonify_trial1", __name__, url_prefix="/sonification/trial1")
@@ -7,7 +11,19 @@ bp = Blueprint("sonify_trial1", __name__, url_prefix="/sonification/trial1")
 @bp.route("/", methods=("GET", "POST"))
 def index():
     participant = request.args.get("participant")
+
+    if participant:
+        session['participant_id'] = participant
+    else:
+        participant = session.get('participant_id')
+
+    if not participant:
+        return "Participant ID missing", 400
+
     return render_template_string("""
+    ...
+    """, participant=participant)
+("""
 <!doctype html>
 <html lang="en">
 <head>
@@ -169,8 +185,10 @@ def index():
   <div class="container">
     <h1>Ready to Move to Trial 2?</h1>
     <p>When you’re set, click below to begin Trial 2.</p>
-    <a href="{{ url_for('sonify_trial2.index') }}" class="button">Go to Sonification Trial 2 →</a>
+    <a href="{{ url_for('sonify_trial2.index') }}?participant={{ participant }}" class="button" id="goToTrial2">Go to Sonification Trial 2 →</a>
   </div>
+  <input type="hidden" id="participant-id" value="{{ participant }}">
+
 
 <script>
   const audio = document.getElementById("dnaAudio");
@@ -185,7 +203,16 @@ def index():
   const maxMarkers = 10;
   let remainingMarkers = maxMarkers;
 
+  const placedMarkers = [];
+  let firstPlayTime = null;
+  let trialStartTime = null;
+
   playButton.addEventListener("click", () => {
+    if (!firstPlayTime) {
+      firstPlayTime = new Date();
+      trialStartTime = audio.currentTime;
+    }
+
     if (audio.paused) {
       audio.play();
       playButton.textContent = "Pause";
@@ -231,6 +258,7 @@ def index():
     });
 
     markerContainer.appendChild(marker);
+    placedMarkers.push(currentTime);
     remainingMarkers--;
     markerButton.textContent = remainingMarkers;
     markerLabel.textContent = `/10 markers left`;
@@ -259,8 +287,94 @@ def index():
       playButton.click();
     }
   });
+
+  document.getElementById("goToTrial2").addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    if (!firstPlayTime) {
+      alert("Please play the audio at least once before continuing.");
+      return;
+    }
+
+    const trialEndTime = new Date();
+    const elapsed = (trialEndTime - firstPlayTime) / 1000;
+
+    let participant = null;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    participant = urlParams.get("participant");
+
+    if (!participant) {
+      const hiddenInput = document.getElementById("participant-id");
+      if (hiddenInput) {
+        participant = hiddenInput.value;
+      }
+    }
+
+    if (!participant) {
+      alert("Participant ID missing. Cannot submit results.");
+      return;
+    }
+
+    await fetch("/sonification/trial1/submit_trial1", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        participant: participant,
+        markers: placedMarkers,
+        elapsed: elapsed
+      })
+    });
+
+    window.location.href = e.target.href;
+  });
 </script>
 
 </body>
 </html>
 """)
+
+@bp.route('/submit_trial1', methods=["POST"])
+def submit_trial1():
+    data = request.get_json()
+    participant = data.get("participant")
+    markers = data.get("markers", [])
+    elapsed = data.get("elapsed", 0)
+
+    mutation_windows = [
+        (5, 9), (61, 65), (91, 95),
+        (125, 129), (187, 191), (247, 251), (271, 275)
+    ]
+
+    correct = 0
+    used_windows = set()
+
+    for m in markers:
+        for i, (start, end) in enumerate(mutation_windows):
+            if i in used_windows:
+                continue
+            if start <= m <= end:
+                correct += 1
+                used_windows.add(i)
+                break
+
+    misplaced = len(markers) - correct
+
+    file_path = "TrialResults/sonification_trial_results.csv"
+    file_exists = os.path.isfile(file_path)
+
+    with open(file_path, "a", newline="") as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow([
+                "Participant", "Trial", "Total Markers",
+                "MutationsFound", "MisplacedMarkers", "TimeTaken"
+            ])
+        writer.writerow([
+            participant, 1, len(markers),
+            correct, misplaced, round(elapsed, 2)
+        ])
+
+    return {"success": True}
+
+
