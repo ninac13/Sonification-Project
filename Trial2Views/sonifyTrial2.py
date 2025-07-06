@@ -1,9 +1,57 @@
-from flask import Blueprint, render_template_string, url_for
+from flask import Blueprint, render_template_string, request, redirect, url_for
+import os
+import csv
+from datetime import datetime
 
 bp = Blueprint("sonify_trial2", __name__, url_prefix="/sonification/trial2")
 
-@bp.route("/")
+@bp.route("/", methods=["GET", "POST"])
 def index():
+    participant = request.args.get("p", default="")
+    if request.method == "POST":
+        data = request.get_json()
+        participant = request.args.get("participant")
+        trial_number = 2
+        start_time = data.get("startTime")
+        end_time = data.get("endTime")
+        markers = data.get("markers", [])
+
+        time_taken = round(end_time - start_time, 2)
+        total_markers = len(markers)
+
+        # Define mutation intervals (in seconds)
+        mutation_intervals = [
+            (14, 18),
+            (48, 52),
+            (90, 94),
+            (142, 146),
+            (170, 174),
+            (249, 253),
+            (274, 278)
+        ]
+
+        correct = 0
+        for m in markers:
+            for start, end in mutation_intervals:
+                if start <= m <= end:
+                    correct += 1
+                    break
+
+        misplaced = total_markers - correct
+
+        save_path = "TrialResults/sonification_trial_results.csv"
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        file_exists = os.path.isfile(save_path)
+
+        with open(save_path, "a", newline="") as f:
+            writer = csv.writer(f)
+            if not file_exists:
+                writer.writerow(["Participant", "Trial", "TimeTaken", "MarkersUsed", "MutationsFound", "MisplacedMarkers"])
+            writer.writerow([participant, trial_number, time_taken, total_markers, correct, misplaced])
+
+        return redirect(url_for("sonify_trial3.index", p=participant))
+
+
     return render_template_string("""
 <!doctype html>
 <html lang="en">
@@ -136,7 +184,7 @@ def index():
 
   <div class="container">
     <h1>Sonified Trial 2</h1>
-    <p>When you hear a mutation (two notes playing at the same time) click the red button in order to mark where you have heard the mutation. However, you will NOT be told how many mutations there are and whether you got them correct. There are ten markers provided and you may use all or none of them. Only place the markers appropiately when you hear a mutation.</p>
+    <p>When you hear a mutation (two notes playing at the same time) click the red button in order to mark where you have heard the mutation. However, you will NOT be told how many mutations there are and whether you got them correct. There are ten markers provided and you may use all or none of them. Only place the markers appropriately when you hear a mutation.</p>
 
     <div class="audio-controls">
       <button id="playButton">Play</button>
@@ -166,7 +214,10 @@ def index():
   <div class="container">
     <h1>Ready to Move to Trial 3?</h1>
     <p>When you’re set, click below to begin Trial 3.</p>
-    <a href="/sonification/trial3/" class="button">Go to Sonification Trial 3 →</a>
+    <form id="nextForm" method="POST">
+      <input type="hidden" name="data">
+      <button class="button" type="submit">Go to Sonification Trial 3 →</button>
+    </form>
   </div>
 
 <script>
@@ -181,8 +232,11 @@ def index():
 
   const maxMarkers = 10;
   let remainingMarkers = maxMarkers;
+  let markers = [];
+  let startTime = null;
 
   playButton.addEventListener("click", () => {
+    if (!startTime) startTime = audio.currentTime || 0;
     if (audio.paused) {
       audio.play();
       playButton.textContent = "Pause";
@@ -211,8 +265,8 @@ def index():
   markerButton.addEventListener("click", () => {
     if (remainingMarkers <= 0 || audio.paused || audio.currentTime === 0) return;
 
-    const duration = audio.duration;
     const currentTime = audio.currentTime;
+    const duration = audio.duration;
     const percent = (currentTime / duration) * 100;
 
     const marker = document.createElement("div");
@@ -222,12 +276,15 @@ def index():
     marker.addEventListener("click", (event) => {
       event.stopPropagation();
       marker.remove();
+      const index = markers.indexOf(currentTime);
+      if (index !== -1) markers.splice(index, 1);
       remainingMarkers++;
       markerButton.textContent = remainingMarkers;
       markerLabel.textContent = `/10 markers left`;
     });
 
     markerContainer.appendChild(marker);
+    markers.push(currentTime);
     remainingMarkers--;
     markerButton.textContent = remainingMarkers;
     markerLabel.textContent = `/10 markers left`;
@@ -256,11 +313,29 @@ def index():
       playButton.click();
     }
   });
+
+  const form = document.getElementById("nextForm");
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    fetch("", {
+      method: "POST",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        startTime: startTime || 0,
+        endTime: audio.currentTime || 0,
+        markers: markers
+      })
+    }).then(() => {
+      window.location.href = "/sonification/trial3/";
+    });
+  });
 </script>
 
 </body>
 </html>
-""")
+""", participant= participant 
+    ) 
+
 
 
 
