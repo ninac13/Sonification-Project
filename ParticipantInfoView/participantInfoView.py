@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template_string, request, redirect, url_for
+from flask import Blueprint, render_template_string, request, session, redirect, url_for
 import csv
 import os
 import json
@@ -254,6 +254,9 @@ def participant_info():
         p_type = request.form['type']
         group = request.form['group']
 
+       
+
+
         file_exists = os.path.isfile(DATA_FILE)
         with open(DATA_FILE, 'a', newline='') as f:
             writer = csv.writer(f)
@@ -299,6 +302,22 @@ def show_data():
                     "MutationsFound": row["MutationsFound"],
                     "MisplacedMarkers": row["MisplacedMarkers"]
                 }
+    if os.path.isfile("TrialResults/sonification_trial_results.csv"):
+      with open("TrialResults/sonification_trial_results.csv") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                pid = row["Participant"]
+                if pid not in results:
+                    results[pid] = {}
+                trial_num = int(row["Trial"]) + 100  # Add offset to separate from visual trials
+                results[pid][trial_num] = {
+                    "TimeTaken": row["TimeTaken"],
+                    "MarkersUsed": row["MarkersUsed"],
+                    "MutationsFound": row["MutationsFound"],
+                    "MisplacedMarkers": row["MisplacedMarkers"],
+                    "type": "Sonification"
+                }
+
                 
     style = """
     <style>

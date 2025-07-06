@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template_string, url_for
+from flask import Blueprint, render_template_string, url_for, request
 
 bp = Blueprint("sonify_demo", __name__, url_prefix="/sonification/demo")
 
 @bp.route("/")
 def index():
+    participant = request.args.get("p", "Unknown")
     return render_template_string("""
 <!doctype html>
 <html lang="en">
@@ -272,11 +273,14 @@ def index():
       Math.abs(t - correctTime) <= errorMargin
     ).length;
 
-    const url = `/sonify/demo/results?t=${elapsed}&m=${usedMarkers.length}&acc=${correctCount}`;
+    const participant = {{ participant | tojson }};
+    console.log("Participant from Flask:", participant);
+    const url = `/sonify/demo/results?t=${elapsed}&m=${usedMarkers.length}&acc=${correctCount}&p=${participant}`;
+
     window.location.href = url;
   });
 </script>
 
 </body>
 </html>
-""")
+""", participant=participant)

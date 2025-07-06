@@ -7,6 +7,8 @@ def show_results():
     elapsed_ms   = request.args.get("t", type=int, default=0)
     used_markers = request.args.get("m", type=int, default=0)
     accuracy     = request.args.get("acc", type=int, default=0)  # markers within ±2s of 11s
+    participant  = request.args.get("p", "Unknown")
+
 
     # Format time: MM:SS:MS
     minutes = elapsed_ms // 60000
@@ -16,7 +18,7 @@ def show_results():
 
     misplaced = used_markers - accuracy
 
-    return render_template_string("""
+    return render_template_string ("""
 <!doctype html>
 <html lang="en">
 <head>
@@ -99,9 +101,10 @@ def show_results():
 
   <!-- Card 3: Navigation -->
   <div class="card">
-    <a href="{{ url_for('sonify_trial1.index') }}" class="button">
-      Proceed to Trial 1 →
+    <a href="{{ url_for('sonify_trial1.index') }}?p={{ participant }}" class="button">
+    Proceed to Trial 1 →
     </a>
+
   </div>
 </body>
 </html>
@@ -109,6 +112,8 @@ def show_results():
     formatted=formatted,
     used_markers=used_markers,
     accuracy=accuracy,
-    misplaced=misplaced
+    misplaced=misplaced,
+    participant=participant
+
 )
 
