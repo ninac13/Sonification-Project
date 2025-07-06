@@ -168,11 +168,12 @@ def index():
   const markerContainer = document.getElementById("markerContainer");
   const progressBarContainer = document.getElementById("progressBarContainer");
   const finishButton = document.getElementById("finishButton");
+  const slider = document.getElementById("playbackRate");
+  const rateDisplay = document.getElementById("rateDisplay");
 
   const maxMarkers = 10;
   let remainingMarkers = maxMarkers;
   let usedMarkers = [];
-
   let startTime = null;
   let playClicked = false;
 
@@ -209,9 +210,8 @@ def index():
   markerButton.addEventListener("click", () => {
     if (remainingMarkers <= 0 || audio.paused || audio.currentTime === 0) return;
 
-    const duration = audio.duration;
     const currentTime = audio.currentTime;
-    const percent = (currentTime / duration) * 100;
+    const percent = (currentTime / audio.duration) * 100;
 
     const marker = document.createElement("div");
     marker.className = "marker-bar";
@@ -234,9 +234,6 @@ def index():
     markerLabel.textContent = `/10 markers left`;
   });
 
-  const slider = document.getElementById("playbackRate");
-  const rateDisplay = document.getElementById("rateDisplay");
-
   slider.addEventListener("input", function () {
     const rate = parseFloat(this.value);
     audio.playbackRate = rate;
@@ -247,8 +244,7 @@ def index():
     const rect = progressBarContainer.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const percent = x / rect.width;
-    const seekTime = audio.duration * percent;
-    audio.currentTime = seekTime;
+    audio.currentTime = audio.duration * percent;
   });
 
   document.addEventListener("keydown", function (event) {
@@ -266,20 +262,21 @@ def index():
 
     const endTime = performance.now();
     const elapsed = Math.floor(endTime - (startTime || endTime)); // ms
-    const correctTime = 11; // mutation occurs at 11s
-    const errorMargin = 2; // ±2s window
 
-    const correctCount = usedMarkers.filter(t =>
+    const correctTime = 11;
+    const errorMargin = 2;
+    const correctMarkers = usedMarkers.filter(t =>
       Math.abs(t - correctTime) <= errorMargin
     ).length;
 
-    const participant = {{ participant | tojson }};
-    console.log("Participant from Flask:", participant);
-    const url = `/sonify/demo/results?t=${elapsed}&m=${usedMarkers.length}&acc=${correctCount}&p=${participant}`;
+    const participant = new URLSearchParams(window.location.search).get("participant") || "Unknown";
 
+
+    const url = `/sonify/demo/results?p=${participant}&t=${elapsed}&m=${usedMarkers.length}&acc=${correctMarkers}`;
     window.location.href = url;
   });
 </script>
+
 
 </body>
 </html>
