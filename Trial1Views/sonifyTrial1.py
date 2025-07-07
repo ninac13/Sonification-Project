@@ -40,7 +40,7 @@ def index():
                 len(marker_times), correct, misplaced])
 
 
-        return redirect(url_for("sonify_trial2.index", participant=participant))
+        return redirect(url_for("sonify_trial2.index") + f"?p={participant}")
 
     return render_template_string("""
 <!doctype html>

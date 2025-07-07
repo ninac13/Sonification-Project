@@ -10,7 +10,7 @@ def index():
     participant = request.args.get("p", default="")
     if request.method == "POST":
         data = request.get_json()
-        participant = request.args.get("participant")
+        participant = request.args.get("p", default="")
         trial_number = 2
         start_time = data.get("startTime")
         end_time = data.get("endTime")
@@ -49,7 +49,7 @@ def index():
                 writer.writerow(["Participant", "Trial", "TimeTaken", "MarkersUsed", "MutationsFound", "MisplacedMarkers"])
             writer.writerow([participant, trial_number, time_taken, total_markers, correct, misplaced])
 
-        return redirect(url_for("sonify_trial3.index", p=participant))
+        return redirect(url_for("sonify_trial3.index") + f"?p={participant}")
 
 
     return render_template_string("""
@@ -221,6 +221,7 @@ def index():
   </div>
 
 <script>
+  const participant = "{{ participant }}"; // or set participant in JS from your backend templating
   const audio = document.getElementById("dnaAudio");
   const playButton = document.getElementById("playButton");
   const timeDisplay = document.getElementById("timeDisplay");
@@ -326,9 +327,12 @@ def index():
         markers: markers
       })
     }).then(() => {
-      window.location.href = "/sonification/trial3/";
+      window.location.href = "/sonification/trial3?p=" + encodeURIComponent(participant);
+
+
     });
   });
+  
 </script>
 
 </body>
