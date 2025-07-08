@@ -304,19 +304,23 @@ def show_data():
                 }
     if os.path.isfile("TrialResults/sonification_trial_results.csv"):
       with open("TrialResults/sonification_trial_results.csv") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                pid = row["Participant"]
-                if pid not in results:
-                    results[pid] = {}
-                trial_num = int(row["Trial"]) + 100  # Add offset to separate from visual trials
-                results[pid][trial_num] = {
-                    "TimeTaken": row["TimeTaken"],
-                    "MarkersUsed": row["MarkersUsed"],
-                    "MutationsFound": row["MutationsFound"],
-                    "MisplacedMarkers": row["MisplacedMarkers"],
-                    "type": "Sonification"
-                }
+        reader = csv.DictReader(f)
+        for row in reader:
+            pid = row["Participant"].strip()
+            if pid not in results:
+                results[pid] = {}
+            trial_num = int(row["Trial"])  # match visual keys
+            results[pid][trial_num] = {
+                "TimeTaken": row["TimeTaken"],
+                "MarkersUsed": row["MarkersUsed"],
+                "MutationsFound": row["MutationsFound"],
+                "MisplacedMarkers": row["MisplacedMarkers"],
+                "type": "Sonification"
+            }
+
+
+
+
 
                 
     style = """

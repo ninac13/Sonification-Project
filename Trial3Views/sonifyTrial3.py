@@ -6,6 +6,11 @@ from datetime import datetime
 
 bp = Blueprint("sonify_trial3", __name__, url_prefix="/sonification/trial3")
 
+def format_time(seconds):
+    minutes = int(seconds) // 60
+    sec = int(seconds) % 60
+    return f"{minutes}:{sec:02}"
+
 @bp.route("/", methods=["GET", "POST"])
 def index():
     participant = request.args.get("p", default="")
@@ -18,7 +23,8 @@ def index():
         end_time = data.get("endTime")
         markers = data.get("markers", [])
 
-        time_taken = round(end_time - start_time, 2)
+        time_taken = round((end_time - start_time) / 1000, 2)  # convert ms to seconds
+
         total_markers = len(markers)
 
         # Define mutation intervals (in seconds)
@@ -55,7 +61,7 @@ def index():
             writer = csv.writer(f)
             if not file_exists:
                 writer.writerow(["Participant", "Trial", "TimeTaken", "MarkersUsed", "MutationsFound", "MisplacedMarkers"])
-            writer.writerow([participant, trial_number, time_taken, total_markers, correct, misplaced])
+            writer.writerow([participant, trial_number, format_time(time_taken), total_markers, correct, misplaced])
 
         return redirect(url_for("finished_view.index") + f"?p={participant}")
 
@@ -242,17 +248,19 @@ def index():
   let remainingMarkers = maxMarkers;
   let markers = [];
   let startTime = null;
+  let realStartTime = null;
 
   playButton.addEventListener("click", () => {
-    if (!startTime) startTime = audio.currentTime || 0;
-    if (audio.paused) {
-      audio.play();
-      playButton.textContent = "Pause";
-    } else {
-      audio.pause();
-      playButton.textContent = "Play";
-    }
-  });
+  if (!realStartTime) realStartTime = Date.now();  // record real-world clock time once
+  if (audio.paused) {
+    audio.play();
+    playButton.textContent = "Pause";
+  } else {
+    audio.pause();
+    playButton.textContent = "Play";
+  }
+});
+
 
   audio.addEventListener("timeupdate", () => {
     const current = audio.currentTime;
@@ -324,21 +332,23 @@ def index():
 
   const form = document.getElementById("nextForm");
   form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    fetch("?p=" + encodeURIComponent(participant), {
-      method: "POST",
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        startTime: startTime || 0,
-        endTime: audio.currentTime || 0,
-        markers: markers
+  e.preventDefault();
+  const realEndTime = Date.now();
+
+  fetch("?p=" + encodeURIComponent(participant), {
+    method: "POST",
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      startTime: realStartTime || realEndTime,
+      endTime: realEndTime,
+      markers: markers
+    })
   })
-})
-.then(() => {
-  window.location.href = "/finished?p=" + encodeURIComponent(participant);
+  .then(() => {
+    window.location.href = "/finished?p=" + encodeURIComponent(participant);
+  });
 });
 
-  });
   
 </script>
 
