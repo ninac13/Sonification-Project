@@ -35,7 +35,8 @@ def index():
         markers_used = request.form.get("markers_used")
         mutations_found = request.form.get("mutations_found")
 
-        if time_taken and markers_used and mutations_found is not None:
+        if all([time_taken, markers_used, mutations_found]) and \
+          markers_used.isdigit() and mutations_found.isdigit():
             misplaced = int(markers_used) - int(mutations_found)
             records = {rec.id: str(rec.seq) for rec in SeqIO.parse(SET1_FASTA, "fasta")}
             nonmut = records["trial1_original"]
