@@ -23,11 +23,11 @@ def index():
     if not participant:
         return "Error: Missing participant ID in URL.", 400
     def format_time(ms):
-      total_ms = int(ms)
-      minutes = total_ms // 60000
-      seconds = (total_ms % 60000) // 1000
-      millis = total_ms % 1000
-      return f"{minutes:02}:{seconds:02}:{millis:03}"
+        total_ms = int(ms)
+        minutes = total_ms // 60000
+        seconds = (total_ms % 60000) // 1000
+        millis = total_ms % 1000
+        return f"{minutes:02}:{seconds:02}:{millis:03}"
 
     if request.method == "POST":
         raw_time = request.form.get("time_taken")
@@ -36,11 +36,8 @@ def index():
         mutations_found = request.form.get("mutations_found")
 
         if all([time_taken, markers_used, mutations_found]) and \
-          markers_used.isdigit() and mutations_found.isdigit():
+           markers_used.isdigit() and mutations_found.isdigit():
             misplaced = int(markers_used) - int(mutations_found)
-            records = {rec.id: str(rec.seq) for rec in SeqIO.parse(SET1_FASTA, "fasta")}
-            nonmut = records["trial1_original"]
-            mut    = records["trial1_mutated"]
 
             file_exists = os.path.isfile(TRIAL_RESULTS_FILE)
             with open(TRIAL_RESULTS_FILE, "a", newline="") as f:
@@ -52,7 +49,6 @@ def index():
             return redirect(url_for("visual_trial2.index", participant=participant))
 
         return "Error: Missing form data", 400
-
     records = {rec.id: str(rec.seq) for rec in SeqIO.parse(SET1_FASTA, "fasta")}
     nonmut = records["trial1_original"]
     mut    = records["trial1_mutated"]
