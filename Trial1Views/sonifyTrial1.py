@@ -260,20 +260,34 @@ def index():
     audio.currentTime = pct * audio.duration;
   });
 
-  markerButton.addEventListener("click", () => {
-    if (remainingMarkers > 0) {
-      const t = audio.currentTime;
-      markers.push(t);
-      const bar = document.createElement("div");
-      bar.className = "marker-bar";
-      bar.style.left = (t / audio.duration) * 100 + "%";
-      bar.title = formatTime(t);
-      markerContainer.appendChild(bar);
-      remainingMarkers -= 1;
+    markerButton.addEventListener("click", () => {
+    if (remainingMarkers <= 0 || audio.paused || audio.currentTime === 0) return;
+
+    const t = audio.currentTime;
+    const percent = (t / audio.duration) * 100;
+
+    const bar = document.createElement("div");
+    bar.className = "marker-bar";
+    bar.style.left = `${percent}%`;
+    bar.title = formatTime(t);
+
+    bar.addEventListener("click", (event) => {
+      event.stopPropagation();
+      bar.remove();
+      const index = markers.indexOf(t);
+     if (index !== -1) markers.splice(index, 1);
+     remainingMarkers++;
       markerButton.textContent = remainingMarkers;
-      markerLabel.textContent = "/10 markers left";
-    }
-  });
+     markerLabel.textContent = "/10 markers left";
+   });
+
+  markerContainer.appendChild(bar);
+  markers.push(t);
+  remainingMarkers--;
+  markerButton.textContent = remainingMarkers;
+  markerLabel.textContent = "/10 markers left";
+});
+
 
   submitButton.addEventListener("click", () => {
     const elapsed = (Date.now() - startTime) / 1000;
