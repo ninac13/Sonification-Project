@@ -297,10 +297,10 @@ def show_data():
                     results[pid] = {}
                 trial_num = int(row["Trial"])
                 results[pid][trial_num] = {
-                    "TimeTaken": row["TimeTaken"],
-                    "MarkersUsed": row["MarkersUsed"],
-                    "MutationsFound": row["MutationsFound"],
-                    "MisplacedMarkers": row["MisplacedMarkers"]
+                    "TimeTaken": row.get["TimeTaken"],
+                    "MarkersUsed": row.get["MarkersUsed"],
+                    "MutationsFound": row.get["MutationsFound"],
+                    "MisplacedMarkers": row.get["MisplacedMarkers"]
                 }
     if os.path.isfile("TrialResults/sonification_trial_results.csv"):
       with open("TrialResults/sonification_trial_results.csv") as f:
@@ -311,10 +311,10 @@ def show_data():
                 results[pid] = {}
             trial_num = int(row["Trial"])  # match visual keys
             results[pid][trial_num] = {
-                "TimeTaken": row["TimeTaken"],
-                "MarkersUsed": row["MarkersUsed"],
-                "MutationsFound": row["MutationsFound"],
-                "MisplacedMarkers": row["MisplacedMarkers"],
+                "TimeTaken": row.get["TimeTaken"],
+                "MarkersUsed": row.get["MarkersUsed"],
+                "MutationsFound": row.get["MutationsFound"],
+                "MisplacedMarkers": row.get["MisplacedMarkers"],
                 "type": "Sonification"
             }
 
