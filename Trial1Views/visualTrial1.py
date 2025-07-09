@@ -37,7 +37,7 @@ def index():
 
         if all([time_taken, markers_used, mutations_found]) and \
            markers_used.isdigit() and mutations_found.isdigit():
-            misplaced = 5
+            misplaced = int(markers_used) - int(mutations_found)
 
             file_exists = os.path.isfile(TRIAL_RESULTS_FILE)
             with open(TRIAL_RESULTS_FILE, "a", newline="") as f:
