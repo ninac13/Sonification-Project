@@ -28,6 +28,7 @@ def index():
       seconds = (total_ms % 60000) // 1000
       millis = total_ms % 1000
       return f"{minutes:02}:{seconds:02}:{millis:03}"
+
     if request.method == "POST":
         raw_time = request.form.get("time_taken")
         time_taken = format_time(raw_time)
@@ -44,7 +45,7 @@ def index():
             with open(TRIAL_RESULTS_FILE, "a", newline="") as f:
                 writer = csv.writer(f)
                 if not file_exists:
-                    writer.writerow(["Participant", "Trial", "TimeTaken(ms)", "MarkersUsed", "MutationsFound", "MisplacedMarkers"])
+                    writer.writerow(["Participant", "Trial", "TimeTaken", "MarkersUsed", "MutationsFound", "MisplacedMarkers"])
                 writer.writerow([participant, 3, time_taken, markers_used, mutations_found, misplaced])
 
             return redirect(url_for("finished_view.index", participant=participant))
@@ -66,18 +67,28 @@ def index():
         body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; margin: 0; display: flex; flex-direction: column; align-items: center; }
         .container { background: #fff; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 90%; max-width: 800px; text-align: center; }
         .label { font-weight: bold; color: #333; display: block; margin-top: 10px; }
-        #nonmut-box { letter-spacing: 1.182ch; width: 30ch; overflow-x: hidden; white-space: nowrap; border: 1px solid #ddd; padding: 5px; background: #fafafa; font-family: monospace; font-size: 40px; margin: 0 auto; }
+        #nonmut-box {width: 30ch; overflow-x: hidden; white-space: nowrap; border: 1px solid #ddd; padding: 5px; background: #fafafa; font-family: monospace; font-size: 40px; margin: 0 auto; }
         #mut-box { width: 30ch; overflow-x: auto; white-space: nowrap; border: 1px solid #ddd; padding: 5px; background: #fafafa; font-family: monospace; font-size: 40px; margin: 0 auto; }
         .nav-buttons { margin-top: 20px; }
         .nav-buttons button { margin: 0 10px; padding: 10px 20px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; background: #007BFF; color: #fff; transition: background .2s; }
         .nav-buttons button:hover { background: #0056b3; }
-        .mut-letter { display: inline-block; position: relative; padding: 0 2px; cursor: default; }
+        .mut-letter {
+          display: inline-block;
+          position: relative;
+          width: 1ch;
+          text-align: center;
+        }
         #marker-pool { text-align: center; }
         #markers { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 5px; border: 1px solid #ddd; background: #fff; position: relative; height: auto; min-height: 3rem; }
         .marker {
           width: 4ch; height: 4ch; line-height: 2ch; text-align: center; background-color: transparent !important;
           border: 2px solid #007BFF; border-radius: 50%; font-size: 1.2rem; background-image: none !important;
           background: #fff; cursor: grab; user-select: none;
+        }
+        .nonmut-letter {
+          display: inline-block;
+          width: 1ch;
+          text-align: center;
         }
         .marker.dragging { opacity: 0.7; cursor: grabbing; }
         #count { font-weight: bold; margin-top: 10px; }
@@ -87,7 +98,11 @@ def index():
       <script>let trialStart = Date.now();</script>
       <div class="container">
         <span class="label">Trial 3 Nonmutated Sequence BELOW</span>
-        <div id="nonmut-box">{{ nonmut }}</div>
+        <div id="nonmut-box">
+          {% for base in nonmut %}
+            <span class="nonmut-letter">{{ base }}</span>
+          {% endfor %}
+        </div>        
         <div id="mut-box">
           {% for base in mut %}
             <span class="mut-letter" data-index="{{ loop.index0 }}">{{ base }}</span>
@@ -104,7 +119,7 @@ def index():
         <div id="count">You have <span id="remaining">10</span> markers left.</div>
       </div>
       <div class="container nav-buttons">
-        <button onclick="submitTrial()">Finished Trial 3 →</button>
+        <button onclick="submitTrial()">Finished Trial 2 and Go to Trial 3 →</button>
       </div>
       <script>
         const mutationIndexes = {{ mutation_indexes|tojson }};
@@ -270,12 +285,12 @@ def index():
     <h2>Read Before Starting</h2>
     <ul class="instructions">
       <li>Try your best to finish finding the mutation(s), if there are any at all, as quickly as you can.</li>
-      <li>The visual trial 3 will be in the same format as the previous activity.</li>
+      <li>The visual trial 3 will be in the same format as the previous trial.</li>
       <li>The same instructions from the demonstration activity apply.</li>
-      <li>If you have any questions, let Lea or Nina know BEFORE STARTING THE SECOND TRIAL.</li>
+      <li>If you have any questions, let Lea or Nina know BEFORE STARTING THE THIRD TRIAL.</li>
     </ul>
   </div>
-    <form method="post" action="{{ url_for('visual_trial3.index') }}?participant={{ participant }}">
+    <form method="post" action="{{ url_for('visual_trial2.index') }}?participant={{ participant }}">
       <button type="submit" class="button">
         Start analyzing your last set of DNA Sequences
       </button>

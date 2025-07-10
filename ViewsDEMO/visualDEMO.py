@@ -34,18 +34,24 @@ def index():
     body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; margin: 0; display: flex; flex-direction: column; align-items: center; }
     .container { background: #fff; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 90%; max-width: 800px; text-align: center; }
     .label { font-weight: bold; color: #333; display: block; margin-top: 10px; }
-    #nonmut-box { letter-spacing: 1.182ch; width: 30ch; overflow-x: hidden; white-space: nowrap; border: 1px solid #ddd; padding: 5px; background: #fafafa; font-family: monospace; font-size: 40px; margin: 0 auto; }
+    #nonmut-box { width: 30ch; overflow-x: hidden; white-space: nowrap; border: 1px solid #ddd; padding: 5px; background: #fafafa; font-family: monospace; font-size: 40px; margin: 0 auto; }
     #mut-box { width: 30ch; overflow-x: auto; white-space: nowrap; border: 1px solid #ddd; padding: 5px; background: #fafafa; font-family: monospace; font-size: 40px; margin: 0 auto; }
     .nav-buttons { margin-top: 20px; }
     .nav-buttons button { margin: 0 10px; padding: 10px 20px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; background: #007BFF; color: #fff; transition: background .2s; }
     .nav-buttons button:hover { background: #0056b3; }
-    .mut-letter { display: inline-block; position: relative; padding: 0 2px; cursor: default; }
     #marker-pool { text-align: center; }
     #markers { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 5px; border: 1px solid #ddd; background: #fff; position: relative; height: auto; min-height: 3rem; }
     .marker {
       width: 4ch; height: 4ch; line-height: 2ch; text-align: center; background-color: transparent !important;
       border: 2px solid #007BFF; border-radius: 50%; font-size: 1.2rem; background-image: none !important;
       background: #fff; cursor: grab; user-select: none;
+    }
+    .mut-letter,
+    .nonmut-letter {
+      display: inline-block;
+      width: 1ch;
+      text-align: center;
+      position: relative;
     }
     .marker.dragging { opacity: 0.7; cursor: grabbing; }
     #count { font-weight: bold; margin-top: 10px; }
@@ -54,7 +60,11 @@ def index():
 <body>
   <div class="container">
     <span class="label">Sickle Cell Nonmutated Sequence BELOW</span>
-    <div id="nonmut-box">{{ nonmut }}</div>
+    <div id="nonmut-box">
+      {% for base in nonmut %}
+        <span class="nonmut-letter">{{ base }}</span>
+      {% endfor %}
+    </div>
     <div id="mut-box">
       {% for base in mut %}
         <span class="mut-letter" data-index="{{ loop.index0 }}">{{ base }}</span>
